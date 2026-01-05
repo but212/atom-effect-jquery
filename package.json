@@ -1,0 +1,45 @@
+{
+  "name": "atom-effect-jquery",
+  "version": "0.1.0",
+  "description": "Reactive jQuery bindings powered by atom-effect",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint src/",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "but212",
+  "license": "MIT",
+  "peerDependencies": {
+    "@but212/atom-effect": ">=0.2.0",
+    "jquery": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@but212/atom-effect": "^0.2.0",
+    "@types/jquery": "^3.5.30",
+    "jquery": "^3.7.1",
+    "jsdom": "^24.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^4.0.16"
+  }
+}
