@@ -5,10 +5,11 @@ import { debug } from './debug';
 import { isReactive, getValue } from './utils';
 import type { ReactiveValue, WritableAtom, ValOptions } from './types';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomText
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Updates element text content.
+ * @param source - Atom or static value.
+ * @param formatter - Optional function to format the value.
+ */
 $.fn.atomText = function(
   source: ReactiveValue<any>,
   formatter?: (v: any) => string
@@ -32,10 +33,10 @@ $.fn.atomText = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomHtml
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Updates element inner HTML.
+ * @param source - Atom or static value.
+ */
 $.fn.atomHtml = function(source: ReactiveValue<string>): JQuery {
   return this.each(function() {
     const $el = $(this);
@@ -54,10 +55,11 @@ $.fn.atomHtml = function(source: ReactiveValue<string>): JQuery {
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomClass
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Toggles a CSS class based on boolean value.
+ * @param className - The class to toggle.
+ * @param condition - Boolean source value.
+ */
 $.fn.atomClass = function(
   className: string,
   condition: ReactiveValue<boolean>
@@ -79,10 +81,12 @@ $.fn.atomClass = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomCss
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Updates a CSS style property.
+ * @param prop - CSS property name.
+ * @param source - Value source.
+ * @param unit - Optional unit (e.g., 'px', 'em').
+ */
 $.fn.atomCss = function(
   prop: string,
   source: ReactiveValue<string | number>,
@@ -106,10 +110,11 @@ $.fn.atomCss = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomAttr
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Updates an HTML attribute.
+ * @param name - Attribute name.
+ * @param source - Attribute value.
+ */
 $.fn.atomAttr = function(
   name: string,
   source: ReactiveValue<string | boolean | null>
@@ -138,10 +143,11 @@ $.fn.atomAttr = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomProp
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Updates a DOM property (e.g., checked, selected, value).
+ * @param name - Property name.
+ * @param source - Property value.
+ */
 $.fn.atomProp = function(
   name: string,
   source: ReactiveValue<any>
@@ -163,10 +169,10 @@ $.fn.atomProp = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomShow / atomHide
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Shows element when condition is true.
+ * @param condition - Boolean source value.
+ */
 $.fn.atomShow = function(condition: ReactiveValue<boolean>): JQuery {
   return this.each(function() {
     const $el = $(this);
@@ -185,6 +191,10 @@ $.fn.atomShow = function(condition: ReactiveValue<boolean>): JQuery {
   });
 };
 
+/**
+ * Hides element when condition is true.
+ * @param condition - Boolean source value.
+ */
 $.fn.atomHide = function(condition: ReactiveValue<boolean>): JQuery {
   return this.each(function() {
     const $el = $(this);
@@ -203,10 +213,11 @@ $.fn.atomHide = function(condition: ReactiveValue<boolean>): JQuery {
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomVal (양방향) - IME 지원 + 무한 루프 방지
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Two-way binding for input values.
+ * Supports IME (Input Method Editor) for CJK languages.
+ * Prevents infinite loops between DOM events and Atom updates.
+ */
 $.fn.atomVal = function(
   atom: WritableAtom<any>,
   options: ValOptions = {}
@@ -223,26 +234,27 @@ $.fn.atomVal = function(
     const el = this;
     
     let timeoutId: number | null = null;
-    let isUpdatingFromAtom = false;  // 무한 루프 방지
-    let isComposing = false;         // IME 조합 중 여부
+    let isUpdatingFromAtom = false;  // Prevents infinite loop
+    let isComposing = false;         // IME composition state
+    let isUpdating = false;          // Update lock flag
 
-    // ========== IME 이벤트 ==========
+    // ========== IME Events ==========
     const onCompositionStart = () => {
       isComposing = true;
     };
 
     const onCompositionEnd = () => {
       isComposing = false;
-      // 조합 완료 시 Atom 업데이트
+      // Update Atom on composition end
       updateAtom();
     };
 
     $el.on('compositionstart', onCompositionStart);
     $el.on('compositionend', onCompositionEnd);
 
-    // ========== 값 업데이트 함수 ==========
+    // ========== Update Logic ==========
     const updateAtom = () => {
-      if (isUpdatingFromAtom) return;
+      if (isUpdatingFromAtom || isUpdating) return;
       
       batch(() => {
         atom.value = parse($el.val() as string);
@@ -251,8 +263,8 @@ $.fn.atomVal = function(
 
     // ========== DOM → Atom ==========
     const onInput = () => {
-      // IME 조합 중이면 무시 (compositionend에서 처리)
-      if (isComposing) return;
+      // Ignore if composing or currently updating
+      if (isComposing || isUpdating) return;
       if (isUpdatingFromAtom) return;
 
       if (debounceMs) {
@@ -264,17 +276,19 @@ $.fn.atomVal = function(
     };
 
     $el.on(event, onInput);
-    $el.on('change', onInput);  // select 등을 위해
-
+    $el.on('change', onInput);
+    
     // ========== Atom → DOM ==========
     const fx = effect(() => {
       const formatted = format(atom.value);
       
-      // 값이 다를 때만 업데이트 (불필요한 DOM 조작 방지)
+      // Update only if value matches specific formatted string to prevent cursor jumps or unnecessary updates
       if ($el.val() !== formatted) {
         isUpdatingFromAtom = true;
+        isUpdating = true; // Lock
         $el.val(formatted);
         debug.domUpdated($el, 'val', formatted);
+        isUpdating = false; // Unlock
         isUpdatingFromAtom = false;
       }
     });
@@ -292,10 +306,9 @@ $.fn.atomVal = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomChecked (양방향) - 무한 루프 방지
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Two-way binding for checkbox/radio checked state.
+ */
 $.fn.atomChecked = function(atom: WritableAtom<boolean>): JQuery {
   return this.each(function() {
     const $el = $(this);
@@ -326,10 +339,9 @@ $.fn.atomChecked = function(atom: WritableAtom<boolean>): JQuery {
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomOn
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Binds an event handler that automatically runs within a batch.
+ */
 $.fn.atomOn = function(
   event: string,
   handler: (e: JQuery.Event) => void
@@ -347,10 +359,9 @@ $.fn.atomOn = function(
   });
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// atomUnbind
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Removes all atom bindings and cleanup effects from the elements.
+ */
 $.fn.atomUnbind = function(): JQuery {
   return this.each(function() {
     registry.cleanupTree(this);

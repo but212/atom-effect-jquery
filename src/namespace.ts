@@ -12,22 +12,22 @@ import { debug } from './debug';
 import type { AtomOptions, WritableAtom } from './types';
 
 /**
- * atom 메타데이터 저장 (디버깅용)
+ * Stores Atom metadata (for debugging).
  */
 const atomMetadata = new WeakMap<WritableAtom<any>, { name?: string }>();
 
 /**
- * $.atom 함수
+ * Creates an atom with optional metadata.
  */
 function atom<T>(initialValue: T, options: AtomOptions = {}): WritableAtom<T> {
   const instance = createAtom(initialValue, options);
   
-  // 메타데이터 저장
+  // Store metadata
   if (options.name) {
     atomMetadata.set(instance, { name: options.name });
   }
 
-  // 디버그 모드: 값 변경 감지
+  // Debug mode: Value change detection
   // Note: Wrapper logic removed due to interference with atom-effect internals (computed reactivity)
   // Revisit if safer interception method is found.
   /*
@@ -39,7 +39,7 @@ function atom<T>(initialValue: T, options: AtomOptions = {}): WritableAtom<T> {
   return instance;
 }
 
-// debug 속성 추가
+// Add debug property
 // @ts-ignore: Adding property to function
 atom.debug = false;
 Object.defineProperty(atom, 'debug', {
@@ -52,7 +52,7 @@ Object.defineProperty(atom, 'debug', {
 });
 
 /**
- * jQuery 정적 메서드 확장
+ * Extend jQuery static methods.
  */
 $.extend({
   atom,

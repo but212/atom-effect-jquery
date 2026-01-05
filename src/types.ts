@@ -7,24 +7,22 @@ import type {
   ComputedOptions
 } from '@but212/atom-effect';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Atom 옵션 확장
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Extended options for Atom creation.
+ */
 export interface AtomOptions extends BaseAtomOptions {
-  name?: string;  // 디버깅용 이름
+  /** Name for debugging purposes */
+  name?: string;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 반응형 값
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Represents a value that can be either dynamic (Atom/Computed) or static.
+ */
 export type ReactiveValue<T> = T | ReadonlyAtom<T> | ComputedAtom<T>;
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 바인딩 옵션
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Configuration options for `atomBind`.
+ */
 export interface BindingOptions {
   text?: ReactiveValue<any>;
   html?: ReactiveValue<string>;
@@ -39,10 +37,9 @@ export interface BindingOptions {
   on?: Record<string, (e: JQuery.Event) => void>;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 리스트 옵션
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Configuration options for `atomList`.
+ */
 export interface ListOptions<T> {
   key: keyof T | ((item: T, index: number) => string | number);
   render: (item: T, index: number) => string;
@@ -52,10 +49,9 @@ export interface ListOptions<T> {
   empty?: string;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Val 옵션
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Configuration options for `atomVal`.
+ */
 export interface ValOptions {
   debounce?: number;
   event?: string;
@@ -63,15 +59,10 @@ export interface ValOptions {
   format?: (v: any) => string;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 컴포넌트
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+/**
+ * Functional Component type.
+ */
 export type ComponentFn<P = {}> = ($el: JQuery, props: P) => void | (() => void);
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// jQuery 타입 확장
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 declare global {
   interface JQueryStatic {
@@ -89,7 +80,7 @@ declare global {
   }
 
   interface JQuery {
-    // 체이닝
+    // Chainable methods
     atomText(source: ReactiveValue<any>, formatter?: (v: any) => string): this;
     atomHtml(source: ReactiveValue<string>): this;
     atomClass(className: string, condition: ReactiveValue<boolean>): this;
@@ -102,17 +93,17 @@ declare global {
     atomChecked(atom: WritableAtom<boolean>): this;
     atomOn(event: string, handler: (e: JQuery.Event) => void): this;
 
-    // 통합
+    // Integrated binding
     atomBind(options: BindingOptions): this;
 
-    // 리스트
+    // List rendering
     atomList<T>(source: ReadonlyAtom<T[]>, options: ListOptions<T>): this;
 
-    // 컴포넌트
+    // Component mounting
     atomMount<P>(component: ComponentFn<P>, props?: P): this;
     atomUnmount(): this;
 
-    // 정리
+    // Cleanup
     atomUnbind(): this;
   }
 }

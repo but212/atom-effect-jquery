@@ -5,13 +5,22 @@ import { debug } from './debug';
 import { isReactive, getValue } from './utils';
 import type { BindingOptions, WritableAtom } from './types';
 
+/**
+ * Extends jQuery with atom-based data binding capabilities.
+ * This plugin allows synchronizing DOM element states (text, html, classes, styles, etc.)
+ * with reactive atoms or static values. It also supports two-way binding for form inputs
+ * and automatic cleanup of effects and event listeners.
+ *
+ * @param options - Configuration object defining the bindings.
+ * @returns The jQuery object for chainability.
+ */
 $.fn.atomBind = function(options: BindingOptions): JQuery {
   return this.each(function() {
     const $el = $(this);
     const el = this;
     const effects: (() => void)[] = [];
 
-    // text
+    // Text
     if (options.text !== undefined) {
       if (isReactive(options.text)) {
         effects.push(() => {
@@ -24,7 +33,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // html
+    // HTML
     if (options.html !== undefined) {
       if (isReactive(options.html)) {
         effects.push(() => {
@@ -37,7 +46,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // class
+    // Class
     if (options.class) {
       for (const [className, condition] of Object.entries(options.class)) {
         if (isReactive(condition)) {
@@ -52,7 +61,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // css
+    // CSS
     if (options.css) {
       for (const [prop, value] of Object.entries(options.css)) {
         if (Array.isArray(value)) {
@@ -78,7 +87,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // attr
+    // Attributes
     if (options.attr) {
       for (const [name, value] of Object.entries(options.attr)) {
         const applyAttr = (v: any) => {
@@ -100,7 +109,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // prop
+    // Properties
     if (options.prop) {
       for (const [name, value] of Object.entries(options.prop)) {
         if (isReactive(value)) {
@@ -115,7 +124,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // show
+    // Show
     if (options.show !== undefined) {
       if (isReactive(options.show)) {
         effects.push(() => {
@@ -128,7 +137,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // hide
+    // Hide
     if (options.hide !== undefined) {
       if (isReactive(options.hide)) {
         effects.push(() => {
@@ -141,13 +150,13 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // val (양방향) - IME 지원
+    // Val (Two-way) - Supports IME
     if (options.val !== undefined) {
       const atom = options.val;
       let isUpdatingFromAtom = false;
       let isComposing = false;
 
-      // IME 이벤트
+      // IME Events
       const onCompositionStart = () => { isComposing = true; };
       const onCompositionEnd = () => {
         isComposing = false;
@@ -183,7 +192,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       });
     }
 
-    // checked (양방향)
+    // Checked (Two-way)
     if (options.checked !== undefined) {
       const atom = options.checked;
       let isUpdatingFromAtom = false;
@@ -204,7 +213,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       });
     }
 
-    // on
+    // Event Handlers
     if (options.on) {
       for (const [eventName, handler] of Object.entries(options.on)) {
         const wrapped = function(this: HTMLElement, e: JQuery.Event) {
@@ -215,7 +224,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       }
     }
 
-    // Effect 등록
+    // Register Effects
     if (effects.length > 0) {
       const fx = effect(() => {
         effects.forEach(fn => fn());

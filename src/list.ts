@@ -6,12 +6,16 @@ import { getSelector } from './utils';
 import type { ListOptions, ReadonlyAtom } from './types';
 
 /**
- * atomList 구현
+ * Implementation of atomList
  * 
- * v1.0 제한사항:
- * - 단순 추가/삭제만 최적화
- * - 정렬/이동은 전체 재렌더링
- * - 고급 Diffing은 v2.0에서 지원 예정
+ * v1.0 Limitations:
+ * - Optimized for simple additions/removals.
+ * - Sorting/Moving re-inserts elements (preserving instances).
+ * - Advanced keyed diffing planned for v2.0.
+ * 
+ * WARNING:
+ * While basic node reuse is implemented, complex updates might cause focus loss depending on usage.
+ * For complex interactive lists, considering using individual component bindings is recommended.
  */
 $.fn.atomList = function<T>(
   source: ReadonlyAtom<T[]>,
@@ -37,7 +41,7 @@ $.fn.atomList = function<T>(
 
       debug.log('list', `${containerSelector} updating with ${items.length} items`);
 
-      // 빈 상태
+      // Empty state
       if (items.length === 0 && empty) {
         if (!$emptyEl) {
           $emptyEl = $(empty);
@@ -54,7 +58,7 @@ $.fn.atomList = function<T>(
         $emptyEl = null;
       }
 
-      // 아이템 처리
+      // Process items
       let $prev: JQuery | null = null;
 
       for (let i = 0; i < items.length; i++) {
@@ -65,7 +69,7 @@ $.fn.atomList = function<T>(
         const existing = itemMap.get(k);
 
         if (existing) {
-          // 위치 조정
+          // Reposition
           if ($prev) {
             $prev.after(existing.$el);
           } else {
@@ -74,7 +78,7 @@ $.fn.atomList = function<T>(
           existing.item = item;
           $prev = existing.$el;
         } else {
-          // 새로 생성
+          // Create new
           const html = render(item, i);
           const $el = $(html);
 
@@ -100,7 +104,7 @@ $.fn.atomList = function<T>(
         }
       }
 
-      // 제거
+      // Remove
       for (const [k, entry] of itemMap) {
         if (!newKeys.has(k)) {
           const doRemove = () => {

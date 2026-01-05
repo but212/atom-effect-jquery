@@ -3,29 +3,29 @@ import { debug } from './debug';
 import { getSelector } from './utils';
 
 /**
- * 바인딩 레지스트리
+ * Binding Registry
  * 
- * 순환 참조 문제 해결:
- * - Atom -> Subscription -> Callback -> DOM Element 순환 참조 방지
- * - WeakMap으로 DOM 요소별 구독 해제 함수 추적
- * - MutationObserver로 DOM 제거 시 자동 unsubscribe
+ * Solving Circular Reference Issues:
+ * - Prevents Atom -> Subscription -> Callback -> DOM Element cycle.
+ * - Uses WeakMap to track effects and cleanup functions per DOM element.
+ * - Automatically unsubscribes when DOM elements are removed via MutationObserver.
  * 
- * 메모리 누수 방지:
- * - DOM 제거 시 반드시 unsubscribe() 호출
- * - 자식 노드도 재귀적으로 정리
+ * Preventing Memory Leaks:
+ * - Must call unsubscribe() when DOM is removed.
+ * - Recursively cleans up child nodes.
  */
 class BindingRegistry {
-  // DOM 요소 -> Effect 배열 (구독 해제용)
+  // DOM Element -> Effect Array (for disposal)
   private effects = new WeakMap<Element, EffectObject[]>();
   
-  // DOM 요소 -> 커스텀 cleanup 함수 배열
+  // DOM Element -> Custom Cleanup Function Array
   private cleanups = new WeakMap<Element, Array<() => void>>();
   
-  // 바인딩된 요소 추적 (성능 최적화)
+  // Track bound elements (Performance optimization)
   private boundElements = new WeakSet<Element>();
 
   /**
-   * Effect 등록 (나중에 dispose 호출용)
+   * Registers an Effect to be disposed later.
    */
   trackEffect(el: Element, fx: EffectObject): void {
     const list = this.effects.get(el) || [];
@@ -35,7 +35,7 @@ class BindingRegistry {
   }
 
   /**
-   * 커스텀 cleanup 함수 등록 (이벤트 해제 등)
+   * Registers a custom cleanup function (e.g., event listener removal).
    */
   trackCleanup(el: Element, fn: () => void): void {
     const list = this.cleanups.get(el) || [];
@@ -45,39 +45,39 @@ class BindingRegistry {
   }
 
   /**
-   * 바인딩 여부 확인 (성능 최적화)
+   * Checks if an element has bindings (Fast check).
    */
   hasBind(el: Element): boolean {
     return this.boundElements.has(el);
   }
 
   /**
-   * 단일 요소 정리
-   * - 모든 Effect dispose (Atom과의 연결 끊기)
-   * - 모든 커스텀 cleanup 실행
+   * Cleans up a single element.
+   * - Disposes all Effects (severs connection with Atom).
+   * - Executes all custom cleanups.
    */
   cleanup(el: Element): void {
     if (!this.boundElements.has(el)) return;
 
     debug.cleanup(getSelector(el));
 
-    // 1. Effects dispose - Atom 구독 해제 (순환 참조 끊기!)
+    // 1. Dispose Effects - Unsubscribe from Atoms (Break circular reference!)
     const effects = this.effects.get(el);
     if (effects) {
-      this.effects.delete(el); // 재진입 방지를 위해 먼저 삭제
+      this.effects.delete(el); // Delete first to prevent re-entry
       effects.forEach(fx => {
         try { 
-          fx.dispose();  // 이게 핵심! Atom과의 연결 끊기
+          fx.dispose(); 
         } catch (e) {
           debug.warn('Effect dispose error:', e);
         }
       });
     }
 
-    // 2. 커스텀 cleanups 실행 (이벤트 해제 등)
+    // 2. Execute custom cleanups (e.g., remove event listeners)
     const cleanups = this.cleanups.get(el);
     if (cleanups) {
-      this.cleanups.delete(el); // 재진입 방지를 위해 먼저 삭제
+      this.cleanups.delete(el); // Delete first to prevent re-entry
       cleanups.forEach(fn => {
         try { fn(); } catch (e) {
           debug.warn('Cleanup error:', e);
@@ -89,11 +89,11 @@ class BindingRegistry {
   }
 
   /**
-   * 요소와 모든 자식 정리 (재귀)
-   * - 깊은 삭제 시 필수 (empty(), remove() 등)
+   * Cleans up the element and all its descendants (Recursive).
+   * - Essential for deep removal (empty(), remove(), etc.).
    */
   cleanupTree(el: Element): void {
-    // 자식 먼저 (깊이 우선)
+    // Descendants first (Depth-First)
     const children = el.querySelectorAll('*');
     children.forEach(child => {
       if (this.boundElements.has(child)) {
@@ -101,19 +101,19 @@ class BindingRegistry {
       }
     });
     
-    // 그 다음 자신
+    // Then the element itself
     this.cleanup(el);
   }
 }
 
 export const registry = new BindingRegistry();
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MutationObserver 자동 cleanup
-// 
-// jQuery의 .remove()나 .empty()는 외부 라이브러리(Atom)의
-// 구독까지는 정리하지 못함. MutationObserver가 필수!
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/**
+ * MutationObserver for Auto-Cleanup
+ * 
+ * jQuery's .remove() or .empty() cannot clean up external library (Atom) subscriptions.
+ * MutationObserver is essential to detect DOM removals and trigger cleanup.
+ */
 
 let observer: MutationObserver | null = null;
 
@@ -124,7 +124,7 @@ export function enableAutoCleanup(root: Element = document.body): void {
     for (const mutation of mutations) {
       mutation.removedNodes.forEach(node => {
         if (node instanceof Element) {
-          // 제거된 노드와 모든 자식 정리
+          // Cleanup removed node and all its descendants recursively
           registry.cleanupTree(node);
         }
       });

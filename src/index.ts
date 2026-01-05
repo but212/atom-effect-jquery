@@ -1,30 +1,30 @@
 /**
  * atom-effect-jquery
  * 
- * jQuery에 반응성을 더하다
+ * Brings reactivity to jQuery.
  * 
- * 특징:
- * - IME(한글/중국어/일본어) 입력 완벽 지원
- * - MutationObserver 기반 자동 cleanup (메모리 누수 방지)
- * - Debug 모드: 콘솔 로깅 + 시각적 하이라이트
+ * Features:
+ * - Full CJK IME Support (Input Method Editor).
+ * - Auto-cleanup via MutationObserver (No memory leaks).
+ * - Debug Mode: Console logging + Visual Highlighting.
  */
 
 import $ from 'jquery';
 
-// 플러그인 등록
+// Register plugins
 import './namespace';
 import './chainable';
 import './unified';
 import './list';
 import './mount';
 
-// 자동 cleanup (핵심!)
+// Auto-cleanup (Crucial!)
 import { enableAutoCleanup, disableAutoCleanup, registry } from './registry';
 
-// DOM Ready 시 자동 활성화
+// Auto-enable on DOM ready
 $(() => enableAutoCleanup(document.body));
 
-// 명시적 import 지원
+// Explicit import support
 export {
   atom,
   computed,
@@ -33,7 +33,7 @@ export {
   untracked
 } from '@but212/atom-effect';
 
-// 타입 export
+// Export types
 export type {
   WritableAtom,
   ReadonlyAtom,

@@ -1,9 +1,9 @@
 /**
- * 디버그 모드
+ * Debug Mode
  * 
- * $.atom.debug = true 로 활성화하면:
- * 1. 콘솔에 상태 변경 로깅
- * 2. DOM 업데이트 시 빨간 테두리 깜빡임 (시각적 피드백)
+ * When $.atom.debug = true is enabled:
+ * 1. Logs state changes to the console.
+ * 2. Visually highlights DOM updates (red border flash).
  */
 
 let debugEnabled = false;
@@ -33,19 +33,19 @@ export const debug = {
   },
 
   /**
-   * DOM 업데이트 로깅 + 시각적 하이라이트
+   * Logs DOM updates and triggers visual highlight.
    */
   domUpdated($el: JQuery, type: string, value: any) {
     if (!debugEnabled) return;
 
-    // 콘솔 로깅
+    // Console logging
     const selector = getDebugSelector($el);
     console.log(
       `[atom-effect-jquery] DOM updated: ${selector}.${type} =`,
       value
     );
 
-    // 시각적 하이라이트 (빨간 테두리 깜빡임)
+    // Visual highlight (red border flash)
     highlightElement($el);
   },
 
@@ -63,7 +63,7 @@ export const debug = {
 };
 
 /**
- * 요소의 셀렉터 문자열 생성 (디버깅용)
+ * Generates a selector string for the element (for debugging).
  */
 function getDebugSelector($el: JQuery): string {
   const el = $el[0];
@@ -77,22 +77,22 @@ function getDebugSelector($el: JQuery): string {
 }
 
 /**
- * 시각적 하이라이트 - 빨간 테두리 깜빡임
- * React DevTools의 "Highlight updates" 기능 벤치마킹
+ * Visual highlight - flashes a red border.
+ * Inspired by React DevTools "Highlight updates".
  */
 function highlightElement($el: JQuery): void {
-  // 현재 outline 저장
+  // Save current outline
   const originalOutline = $el.css('outline');
   const originalTransition = $el.css('transition');
 
-  // 빨간 테두리 적용
+  // Apply red border
   $el.css({
     'outline': '2px solid #ff4444',
     'outline-offset': '1px',
     'transition': 'outline 0.1s ease-out'
   });
 
-  // 200ms 후 원래대로 복원
+  // Restore after 200ms
   setTimeout(() => {
     $el.css({
       'outline': originalOutline || '',

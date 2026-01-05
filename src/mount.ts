@@ -6,6 +6,10 @@ import type { ComponentFn } from './types';
 
 const mountedComponents = new WeakMap<Element, () => void>();
 
+/**
+ * Mounts a functional component to the element.
+ * Automatically cleans up existing components on the same element.
+ */
 $.fn.atomMount = function<P>(
   component: ComponentFn<P>,
   props: P = {} as P
@@ -15,7 +19,7 @@ $.fn.atomMount = function<P>(
     const el = this;
     const selector = getSelector(el);
 
-    // 기존 컴포넌트 언마운트
+    // Unmount existing component
     const existing = mountedComponents.get(el);
     if (existing) {
       debug.log('mount', `${selector} unmounting existing component`);
@@ -24,7 +28,7 @@ $.fn.atomMount = function<P>(
 
     debug.log('mount', `${selector} mounting component`);
 
-    // 마운트
+    // Mount
     let userCleanup: void | (() => void);
     try {
       userCleanup = component($el, props);
@@ -53,6 +57,9 @@ $.fn.atomMount = function<P>(
   });
 };
 
+/**
+ * Manually unmounts a component from the element.
+ */
 $.fn.atomUnmount = function(): JQuery {
   return this.each(function() {
     mountedComponents.get(this)?.();
