@@ -48,4 +48,23 @@ describe('Chainable Methods', () => {
     expect($el.attr('src')).toBe('new.jpg');
     $el.remove();
   });
+
+  it('atomText should work with computed', async () => {
+    const count = $.atom(1);
+    const doubled = $.computed(() => count.value * 2);
+    const $el = $('<div>').appendTo(document.body);
+    
+    // Explicit subscription to wake up computed if lazy
+    // doubled.subscribe(() => {}); 
+
+    $el.atomText(doubled);
+    
+    await tick();
+    expect($el.text()).toBe('2');
+    
+    count.value = 2;
+    await tick();
+    expect($el.text()).toBe('4');
+    $el.remove();
+  });
 });

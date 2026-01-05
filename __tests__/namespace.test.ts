@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
 
+function tick() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
 describe('Namespace', () => {
   it('should create atom via $.atom', () => {
     const a = $.atom(10);
@@ -10,7 +14,7 @@ describe('Namespace', () => {
     expect(a.value).toBe(20);
   });
 
-  it('should create computed via $.computed', () => {
+  it('should create computed via $.computed', async () => {
     const a = $.atom(1);
     const b = $.computed(() => a.value * 2);
     
@@ -19,6 +23,7 @@ describe('Namespace', () => {
     
     expect(b.value).toBe(2);
     a.value = 2;
+    await tick();
     expect(b.value).toBe(4);
     
     unsub();
