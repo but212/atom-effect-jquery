@@ -14,7 +14,7 @@ import type { AtomOptions, WritableAtom } from './types';
 /**
  * Stores Atom metadata (for debugging).
  */
-const atomMetadata = new WeakMap<WritableAtom<any>, { name?: string }>();
+const atomMetadata = new WeakMap<WritableAtom<unknown>, { name?: string }>();
 
 /**
  * Creates an atom with optional metadata.
@@ -40,8 +40,6 @@ function atom<T>(initialValue: T, options: AtomOptions = {}): WritableAtom<T> {
 }
 
 // Add debug property
-// @ts-ignore: Adding property to function
-atom.debug = false;
 Object.defineProperty(atom, 'debug', {
   get() {
     return debug.enabled;

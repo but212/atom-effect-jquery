@@ -3,7 +3,7 @@ import { effect, batch } from '@but212/atom-effect';
 import { registry } from './registry';
 import { debug } from './debug';
 import { isReactive, getValue } from './utils';
-import type { BindingOptions, WritableAtom } from './types';
+import type { BindingOptions } from './types';
 
 /**
  * Extends jQuery with atom-based data binding capabilities.
@@ -14,10 +14,9 @@ import type { BindingOptions, WritableAtom } from './types';
  * @param options - Configuration object defining the bindings.
  * @returns The jQuery object for chainability.
  */
-$.fn.atomBind = function(options: BindingOptions): JQuery {
+$.fn.atomBind = function<T extends string | number | boolean | null | undefined>(options: BindingOptions<T>): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
     const effects: (() => void)[] = [];
 
     // Text
@@ -90,7 +89,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
     // Attributes
     if (options.attr) {
       for (const [name, value] of Object.entries(options.attr)) {
-        const applyAttr = (v: any) => {
+        const applyAttr = (v: string | boolean | null | undefined) => {
           if (v === null || v === undefined || v === false) {
             $el.removeAttr(name);
           } else if (v === true) {
@@ -161,7 +160,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       const onCompositionEnd = () => {
         isComposing = false;
         if (!isUpdatingFromAtom) {
-          batch(() => { atom.value = $el.val(); });
+          batch(() => { atom.value = $el.val() as unknown as T; });
         }
       };
 
@@ -170,12 +169,12 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
 
       const handler = () => {
         if (isComposing || isUpdatingFromAtom) return;
-        batch(() => { atom.value = $el.val(); });
+        batch(() => { atom.value = $el.val() as unknown as T; });
       };
       
       $el.on('input change', handler);
       
-      registry.trackCleanup(el, () => {
+      registry.trackCleanup(this, () => {
         $el.off('input change', handler);
         $el.off('compositionstart', onCompositionStart);
         $el.off('compositionend', onCompositionEnd);
@@ -203,7 +202,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       };
       
       $el.on('change', handler);
-      registry.trackCleanup(el, () => $el.off('change', handler));
+      registry.trackCleanup(this, () => $el.off('change', handler));
 
       effects.push(() => {
         isUpdatingFromAtom = true;
@@ -220,7 +219,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
           batch(() => handler.call(this, e));
         };
         $el.on(eventName, wrapped);
-        registry.trackCleanup(el, () => $el.off(eventName, wrapped));
+        registry.trackCleanup(this, () => $el.off(eventName, wrapped));
       }
     }
 
@@ -229,7 +228,7 @@ $.fn.atomBind = function(options: BindingOptions): JQuery {
       const fx = effect(() => {
         effects.forEach(fn => fn());
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     }
   });
 };

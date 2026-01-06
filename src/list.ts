@@ -23,14 +23,13 @@ $.fn.atomList = function<T>(
 ): JQuery {
   return this.each(function() {
     const $container = $(this);
-    const containerEl = this;
-    const containerSelector = getSelector(containerEl);
+    const containerSelector = getSelector(this);
 
     const { key, render, bind, onAdd, onRemove, empty } = options;
 
     const getKey = typeof key === 'function'
       ? key
-      : (item: T) => (item as any)[key];
+      : (item: T) => item[key as keyof T] as unknown as string | number;
 
     const itemMap = new Map<string | number, { $el: JQuery; item: T }>();
     let $emptyEl: JQuery | null = null;
@@ -47,7 +46,7 @@ $.fn.atomList = function<T>(
           $emptyEl = $(empty);
           $container.append($emptyEl);
         }
-        for (const [k, entry] of itemMap) {
+        for (const [, entry] of itemMap) {
           entry.$el.remove();
           registry.cleanup(entry.$el[0]!);
         }
@@ -123,8 +122,8 @@ $.fn.atomList = function<T>(
       }
     });
 
-    registry.trackEffect(containerEl, fx);
-    registry.trackCleanup(containerEl, () => {
+    registry.trackEffect(this, fx);
+    registry.trackCleanup(this, () => {
       itemMap.clear();
       $emptyEl?.remove();
     });

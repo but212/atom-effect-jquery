@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
@@ -8,7 +8,7 @@ export default defineConfig({
       entry: "src/index.ts",
       name: "AtomEffectJQuery",
       formats: ["es", "cjs", "umd"],
-      fileName: (format: "es" | "cjs" | "umd") => {
+      fileName: (format) => {
         if (format === "es") return "index.mjs";
         if (format === "cjs") return "index.cjs";
         return "index.umd.js";
@@ -31,4 +31,4 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./__tests__/setup.ts"],
   },
-} as any);
+});

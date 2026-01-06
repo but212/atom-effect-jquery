@@ -7,7 +7,7 @@ import type { ReactiveValue, ReadonlyAtom, ComputedAtom } from './types';
  * @param value - The value to check.
  * @returns True if the value is reactive, false otherwise.
  */
-export function isReactive(value: unknown): value is ReadonlyAtom<any> | ComputedAtom<any> {
+export function isReactive(value: unknown): value is ReadonlyAtom<unknown> | ComputedAtom<unknown> {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -26,7 +26,7 @@ export function isReactive(value: unknown): value is ReadonlyAtom<any> | Compute
  */
 export function getValue<T>(source: ReactiveValue<T>): T {
   if (isReactive(source)) {
-    return (source as any).value;
+    return (source as ReadonlyAtom<T>).value;
   }
   return source as T;
 }

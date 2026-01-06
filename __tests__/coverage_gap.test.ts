@@ -4,6 +4,7 @@ import '../src/index';
 import { debug } from '../src/debug';
 import { getValue } from '../src/utils';
 import { registry, disableAutoCleanup, enableAutoCleanup } from '../src/registry';
+import type { EffectObject } from '../src/types';
 
 function wait(ms = 0) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -124,7 +125,7 @@ describe('Coverage Gap Tests', () => {
   describe('unified.ts gaps', () => {
     it('atomBind reactive branches (html, attr, prop, show, hide)', async () => {
       const html = $.atom('<b>b</b>');
-      const attr = $.atom('val');
+      const attr = $.atom<string | null>('val');
       const prop = $.atom(true);
       const show = $.atom(false);
       const $el = $('<div>').appendTo(document.body);
@@ -143,7 +144,7 @@ describe('Coverage Gap Tests', () => {
       expect($el.css('display')).toBe('none');
 
       html.value = '<i>i</i>';
-      attr.value = null as any;
+      attr.value = null;
       prop.value = false;
       show.value = true;
       await wait();
@@ -285,7 +286,7 @@ describe('Coverage Gap Tests', () => {
       // Force error in dispose
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       $.atom.debug = true;
-      registry.trackEffect(el, { dispose: () => { throw new Error('dispose error'); } } as any);
+      registry.trackEffect(el, { dispose: () => { throw new Error('dispose error'); } } as unknown as EffectObject);
       
       registry.cleanup(el);
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('[atom-effect-jquery]'), 'Effect dispose error:', expect.any(Error));

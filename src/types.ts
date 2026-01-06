@@ -23,16 +23,16 @@ export type ReactiveValue<T> = T | ReadonlyAtom<T> | ComputedAtom<T>;
 /**
  * Configuration options for `atomBind`.
  */
-export interface BindingOptions {
-  text?: ReactiveValue<any>;
+export interface BindingOptions<T> {
+  text?: ReactiveValue<T>;
   html?: ReactiveValue<string>;
   class?: Record<string, ReactiveValue<boolean>>;
   css?: Record<string, ReactiveValue<string | number> | [ReactiveValue<number>, string]>;
   attr?: Record<string, ReactiveValue<string | boolean | null>>;
-  prop?: Record<string, ReactiveValue<any>>;
+  prop?: Record<string, ReactiveValue<T>>;
   show?: ReactiveValue<boolean>;
   hide?: ReactiveValue<boolean>;
-  val?: WritableAtom<any>;
+  val?: WritableAtom<T>;
   checked?: WritableAtom<boolean>;
   on?: Record<string, (e: JQuery.Event) => void>;
 }
@@ -52,11 +52,11 @@ export interface ListOptions<T> {
 /**
  * Configuration options for `atomVal`.
  */
-export interface ValOptions {
+export interface ValOptions<T> {
   debounce?: number;
   event?: string;
-  parse?: (v: string) => any;
-  format?: (v: any) => string;
+  parse?: (v: string) => T;
+  format?: (v: T) => string;
 }
 
 /**
@@ -81,20 +81,20 @@ declare global {
 
   interface JQuery {
     // Chainable methods
-    atomText(source: ReactiveValue<any>, formatter?: (v: any) => string): this;
+    atomText<T>(source: ReactiveValue<T>, formatter?: (v: T) => string): this;
     atomHtml(source: ReactiveValue<string>): this;
     atomClass(className: string, condition: ReactiveValue<boolean>): this;
     atomCss(prop: string, source: ReactiveValue<string | number>, unit?: string): this;
     atomAttr(name: string, source: ReactiveValue<string | boolean | null>): this;
-    atomProp(name: string, source: ReactiveValue<any>): this;
+    atomProp<T extends string | number | boolean | null | undefined>(name: string, source: ReactiveValue<T>): this;
     atomShow(condition: ReactiveValue<boolean>): this;
     atomHide(condition: ReactiveValue<boolean>): this;
-    atomVal(atom: WritableAtom<any>, options?: ValOptions): this;
+    atomVal<T>(atom: WritableAtom<T>, options?: ValOptions<T>): this;
     atomChecked(atom: WritableAtom<boolean>): this;
     atomOn(event: string, handler: (e: JQuery.Event) => void): this;
 
     // Integrated binding
-    atomBind(options: BindingOptions): this;
+    atomBind<T extends string | number | boolean | null | undefined>(options: BindingOptions<T>): this;
 
     // List rendering
     atomList<T>(source: ReadonlyAtom<T[]>, options: ListOptions<T>): this;

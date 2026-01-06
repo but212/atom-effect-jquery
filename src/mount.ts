@@ -16,11 +16,10 @@ $.fn.atomMount = function<P>(
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
-    const selector = getSelector(el);
+    const selector = getSelector(this);
 
     // Unmount existing component
-    const existing = mountedComponents.get(el);
+    const existing = mountedComponents.get(this);
     if (existing) {
       debug.log('mount', `${selector} unmounting existing component`);
       existing();
@@ -48,12 +47,12 @@ $.fn.atomMount = function<P>(
       if (typeof userCleanup === 'function') {
         try { userCleanup(); } catch {}
       }
-      registry.cleanupTree(el);
-      mountedComponents.delete(el);
+      registry.cleanupTree(this);
+      mountedComponents.delete(this);
     };
 
-    mountedComponents.set(el, fullCleanup);
-    registry.trackCleanup(el, fullCleanup);
+    mountedComponents.set(this, fullCleanup);
+    registry.trackCleanup(this, fullCleanup);
   });
 };
 

@@ -10,13 +10,12 @@ import type { ReactiveValue, WritableAtom, ValOptions } from './types';
  * @param source - Atom or static value.
  * @param formatter - Optional function to format the value.
  */
-$.fn.atomText = function(
-  source: ReactiveValue<any>,
-  formatter?: (v: any) => string
+$.fn.atomText = function<T>(
+  source: ReactiveValue<T>,
+  formatter?: (v: T) => string
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(source)) {
       const fx = effect(() => {
@@ -25,7 +24,7 @@ $.fn.atomText = function(
         $el.text(text);
         debug.domUpdated($el, 'text', text);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       const text = formatter ? formatter(source) : String(source ?? '');
       $el.text(text);
@@ -40,7 +39,6 @@ $.fn.atomText = function(
 $.fn.atomHtml = function(source: ReactiveValue<string>): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(source)) {
       const fx = effect(() => {
@@ -48,7 +46,7 @@ $.fn.atomHtml = function(source: ReactiveValue<string>): JQuery {
         $el.html(html);
         debug.domUpdated($el, 'html', html);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       $el.html(String(source ?? ''));
     }
@@ -66,7 +64,6 @@ $.fn.atomClass = function(
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(condition)) {
       const fx = effect(() => {
@@ -74,7 +71,7 @@ $.fn.atomClass = function(
         $el.toggleClass(className, value);
         debug.domUpdated($el, `class.${className}`, value);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       $el.toggleClass(className, Boolean(condition));
     }
@@ -94,7 +91,6 @@ $.fn.atomCss = function(
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(source)) {
       const fx = effect(() => {
@@ -103,7 +99,7 @@ $.fn.atomCss = function(
         $el.css(prop, cssValue);
         debug.domUpdated($el, `css.${prop}`, cssValue);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       $el.css(prop, unit ? `${source}${unit}` : source);
     }
@@ -121,7 +117,6 @@ $.fn.atomAttr = function(
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     const applyAttr = (value: string | boolean | null) => {
       if (value === null || value === undefined || value === false) {
@@ -136,7 +131,7 @@ $.fn.atomAttr = function(
 
     if (isReactive(source)) {
       const fx = effect(() => applyAttr(getValue(source)));
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       applyAttr(source);
     }
@@ -148,13 +143,12 @@ $.fn.atomAttr = function(
  * @param name - Property name.
  * @param source - Property value.
  */
-$.fn.atomProp = function(
+$.fn.atomProp = function<T extends string | number | boolean | null | undefined>(
   name: string,
-  source: ReactiveValue<any>
+  source: ReactiveValue<T>
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(source)) {
       const fx = effect(() => {
@@ -162,7 +156,7 @@ $.fn.atomProp = function(
         $el.prop(name, value);
         debug.domUpdated($el, `prop.${name}`, value);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       $el.prop(name, source);
     }
@@ -176,7 +170,6 @@ $.fn.atomProp = function(
 $.fn.atomShow = function(condition: ReactiveValue<boolean>): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(condition)) {
       const fx = effect(() => {
@@ -184,7 +177,7 @@ $.fn.atomShow = function(condition: ReactiveValue<boolean>): JQuery {
         $el.toggle(value);
         debug.domUpdated($el, 'show', value);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       $el.toggle(Boolean(condition));
     }
@@ -198,7 +191,6 @@ $.fn.atomShow = function(condition: ReactiveValue<boolean>): JQuery {
 $.fn.atomHide = function(condition: ReactiveValue<boolean>): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     if (isReactive(condition)) {
       const fx = effect(() => {
@@ -206,7 +198,7 @@ $.fn.atomHide = function(condition: ReactiveValue<boolean>): JQuery {
         $el.toggle(value);
         debug.domUpdated($el, 'hide', !value);
       });
-      registry.trackEffect(el, fx);
+      registry.trackEffect(this, fx);
     } else {
       $el.toggle(!condition);
     }
@@ -218,20 +210,19 @@ $.fn.atomHide = function(condition: ReactiveValue<boolean>): JQuery {
  * Supports IME (Input Method Editor) for CJK languages.
  * Prevents infinite loops between DOM events and Atom updates.
  */
-$.fn.atomVal = function(
-  atom: WritableAtom<any>,
-  options: ValOptions = {}
+$.fn.atomVal = function<T>(
+  atom: WritableAtom<T>,
+  options: ValOptions<T> = {}
 ): JQuery {
   const {
     debounce: debounceMs,
     event = 'input',
-    parse = (v) => v,
-    format = (v) => String(v ?? '')
+    parse = (v: string) => v as unknown as T,
+    format = (v: T) => String(v ?? '')
   } = options;
 
   return this.each(function() {
     const $el = $(this);
-    const el = this;
     
     let timeoutId: number | null = null;
     let isUpdatingFromAtom = false;  // Prevents infinite loop
@@ -293,10 +284,10 @@ $.fn.atomVal = function(
       }
     });
 
-    registry.trackEffect(el, fx);
+    registry.trackEffect(this, fx);
 
     // ========== Cleanup ==========
-    registry.trackCleanup(el, () => {
+    registry.trackCleanup(this, () => {
       $el.off(event, onInput);
       $el.off('change', onInput);
       $el.off('compositionstart', onCompositionStart);
@@ -312,12 +303,11 @@ $.fn.atomVal = function(
 $.fn.atomChecked = function(atom: WritableAtom<boolean>): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
     
     let isUpdatingFromAtom = false;
 
     // DOM → Atom
-    const handler = function() {
+    const handler = () => {
       if (isUpdatingFromAtom) return;
       
       batch(() => {
@@ -326,7 +316,7 @@ $.fn.atomChecked = function(atom: WritableAtom<boolean>): JQuery {
     };
     
     $el.on('change', handler);
-    registry.trackCleanup(el, () => $el.off('change', handler));
+    registry.trackCleanup(this, () => $el.off('change', handler));
 
     // Atom → DOM
     const fx = effect(() => {
@@ -335,7 +325,7 @@ $.fn.atomChecked = function(atom: WritableAtom<boolean>): JQuery {
       debug.domUpdated($el, 'checked', atom.value);
       isUpdatingFromAtom = false;
     });
-    registry.trackEffect(el, fx);
+    registry.trackEffect(this, fx);
   });
 };
 
@@ -348,14 +338,13 @@ $.fn.atomOn = function(
 ): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const el = this;
 
     const wrappedHandler = function(this: HTMLElement, e: JQuery.Event) {
       batch(() => handler.call(this, e));
     };
 
     $el.on(event, wrappedHandler);
-    registry.trackCleanup(el, () => $el.off(event, wrappedHandler));
+    registry.trackCleanup(this, () => $el.off(event, wrappedHandler));
   });
 };
 

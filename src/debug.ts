@@ -16,13 +16,13 @@ export const debug = {
     debugEnabled = value;
   },
 
-  log(type: string, ...args: any[]) {
+  log<T>(type: string, ...args: T[]) {
     if (debugEnabled) {
       console.log(`[atom-effect-jquery] ${type}:`, ...args);
     }
   },
 
-  atomChanged(name: string | undefined, oldVal: any, newVal: any) {
+  atomChanged<T>(name: string | undefined, oldVal: T, newVal: T) {
     if (debugEnabled) {
       const label = name || 'anonymous';
       console.log(
@@ -35,7 +35,7 @@ export const debug = {
   /**
    * Logs DOM updates and triggers visual highlight.
    */
-  domUpdated($el: JQuery, type: string, value: any) {
+  domUpdated<T>($el: JQuery, type: string, value: T) {
     if (!debugEnabled) return;
 
     // Console logging
@@ -55,7 +55,7 @@ export const debug = {
     }
   },
 
-  warn(...args: any[]) {
+  warn<T>(...args: T[]) {
     if (debugEnabled) {
       console.warn('[atom-effect-jquery]', ...args);
     }
