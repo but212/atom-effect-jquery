@@ -4,9 +4,34 @@
  * When $.atom.debug = true is enabled:
  * 1. Logs state changes to the console.
  * 2. Visually highlights DOM updates (red border flash).
+ * 
+ * Debug mode can be enabled in two ways:
+ * 1. Environment variable (build-time): NODE_ENV=development
+ * 2. Runtime: $.atom.debug = true or window.__ATOM_DEBUG__ = true
  */
 
-let debugEnabled = false;
+/**
+ * Determines the initial debug state based on environment.
+ * Priority: window.__ATOM_DEBUG__ > NODE_ENV === 'development'
+ */
+function getInitialDebugState(): boolean {
+  // Browser: check global flag
+  if (typeof window !== 'undefined') {
+    const globalFlag = (window as Window & { __ATOM_DEBUG__?: boolean }).__ATOM_DEBUG__;
+    if (typeof globalFlag === 'boolean') {
+      return globalFlag;
+    }
+  }
+
+  // Node/Bundler: check NODE_ENV
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+    return true;
+  }
+
+  return false;
+}
+
+let debugEnabled = getInitialDebugState();
 
 export const debug = {
   get enabled() {
