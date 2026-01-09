@@ -23,8 +23,8 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "biome lint src/",
-    "lint:fix": "biome lint src/ --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint . --fix",
     "prepublishOnly": "npm run build"
   },
   "author": "but212",

@@ -48,8 +48,8 @@ describe('Debug Mode', () => {
     $.atom.debug = true;
     
     // Mock css behavior for highlight
-    const originalCss = $el.css.bind($el);
-    const cssSpy = vi.spyOn($el, 'css'); // cant easily spy on jquery method on instance like this effectively but let's try
+    const _originalCss = $el.css.bind($el);
+    const _cssSpy = vi.spyOn($el, 'css'); // cant easily spy on jquery method on instance like this effectively but let's try
     // Better: spy on debug.domUpdated calls via side effects
     
     const atom = $.atom('initial');

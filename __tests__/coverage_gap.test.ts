@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
 import { debug } from '../src/debug';
@@ -225,11 +225,11 @@ describe('Coverage Gap Tests', () => {
       $container.atomList(items, {
         key: 'id',
         render: (item) => `<span>${item.name}</span>`,
-        bind: ($el, item) => {
+        bind: ($el, _item) => {
           bindCalled = true;
           $el.attr('data-bound', 'true');
         },
-        onRemove: async ($el) => {
+        onRemove: async (_$el) => {
           removeCalled = true;
           await wait(10);
         }
