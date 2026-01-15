@@ -2,6 +2,16 @@
   "name": "atom-effect-jquery",
   "version": "0.2.0",
   "description": "Reactive jQuery bindings powered by atom-effect",
+  "keywords": [
+    "jquery",
+    "reactivity",
+    "atom",
+    "signals",
+    "state-management",
+    "binding",
+    "plugin",
+    "observer"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
