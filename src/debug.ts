@@ -24,7 +24,7 @@ function getInitialDebugState(): boolean {
   }
 
   // Vite support
-  if (import.meta.env?.DEV) {
+  if (import.meta.env?.DEV && import.meta.env.MODE !== 'test') {
     return true;
   }
 
