@@ -12,8 +12,8 @@ importers:
         specifier: ^2.3.11
         version: 2.3.11
       '@but212/atom-effect':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.6.0
+        version: 0.6.0
       '@types/jquery':
         specifier: ^3.5.33
         version: 3.5.33
@@ -118,8 +118,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@but212/atom-effect@0.5.1':
-    resolution: {integrity: sha512-wmDp5M8Cs4WsWcn8c50Ei7vKZ0zCjjSDcn7DiMWEeAhQDilitTboAWw6yisuLZmt2hPwjXKmAzUww0DaJ25iaQ==}
+  '@but212/atom-effect@0.6.0':
+    resolution: {integrity: sha512-0yDzM62GYpe+R64nrqpirgpBPb4WiZ/4CAFrvldusu1Rb/MStPBC8QH8xJ924ce0NNAwV68fV1aouYC4JLcM5Q==}
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -1307,7 +1307,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.3.11':
     optional: true
 
-  '@but212/atom-effect@0.5.1': {}
+  '@but212/atom-effect@0.6.0': {}
 
   '@csstools/color-helpers@5.1.0': {}
 
