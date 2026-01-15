@@ -15,27 +15,45 @@
 
 ## Installation
 
+### NPM
+
 ```bash
 npm install atom-effect-jquery jquery @but212/atom-effect
 # or
 pnpm add atom-effect-jquery jquery @but212/atom-effect
 ```
 
+### CDN
+
+```html
+<!-- Load jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Load atom-effect-jquery -->
+<script src="https://cdn.jsdelivr.net/npm/atom-effect-jquery"></script>
+```
+
 ## Basic Usage
 
-```typescript
-import $ from 'jquery';
-import 'atom-effect-jquery';
+```javascript
+// If using NPM:
+// import $ from 'jquery';
+// import 'atom-effect-jquery';
 
 // 1. Create State
 const count = $.atom(0);
+const doubled = $.computed(() => count.value * 2);
 
 // 2. Bind to DOM
 $('#count').atomText(count);
+$('#doubled').atomText(doubled);
 
 // 3. Update State (DOM updates automatically)
-$('#increment').on('click', () => {
-  count.value++;
+$('#increment').on('click', () => count.value++);
+$('#decrement').on('click', () => count.value--);
+
+// 4. React to changes (Side Effects)
+$.effect(() => {
+  console.log(`Current count: ${count.value}, Doubled: ${doubled.value}`);
 });
 ```
 
