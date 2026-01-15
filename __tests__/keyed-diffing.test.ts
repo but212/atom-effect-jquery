@@ -120,4 +120,62 @@ describe('Keyed Diffing (Reconciliation)', () => {
 
         $ul.remove();
     });
+
+    it('should call update callback when reusing items', async () => {
+        const items = $.atom([
+            { id: 1, text: 'A' }
+        ]);
+        const $ul = $('<ul>').appendTo(document.body);
+        
+        $ul.atomList(items, {
+            key: 'id',
+            render: (item) => `<li id="item-${item.id}">${item.text}</li>`,
+            update: ($el, item) => $el.text(item.text)
+        });
+        
+        await $.nextTick();
+        
+        const $li = $ul.find('#item-1');
+        expect($li.text()).toBe('A');
+        const domElement = $li[0];
+        
+        // Update content but keep ID (reuse reference)
+        items.value = [{ id: 1, text: 'A-Updated' }];
+        await $.nextTick();
+        
+        const $liUpdated = $ul.find('#item-1');
+        expect($liUpdated[0]).toBe(domElement); // Element reused
+        expect($liUpdated.text()).toBe('A-Updated'); // Content updated via hook
+        
+        $ul.remove();
+    });
+
+    it('should handle empty state transitions correctly', async () => {
+        const items = $.atom([{ id: 1 }]);
+        const $ul = $('<ul>').appendTo(document.body);
+        
+        $ul.atomList(items, {
+            key: 'id',
+            render: (item) => `<li>${item.id}</li>`,
+            empty: '<li class="empty-placeholder">Empty</li>'
+        });
+        
+        await $.nextTick();
+        expect($ul.find('li').not('.empty-placeholder').length).toBe(1);
+        expect($ul.find('.empty-placeholder').length).toBe(0);
+        
+        // To Empty
+        items.value = [];
+        await $.nextTick();
+        expect($ul.find('li').not('.empty-placeholder').length).toBe(0);
+        expect($ul.find('.empty-placeholder').length).toBe(1);
+        
+        // Back to Filled
+        items.value = [{ id: 2 }];
+        await $.nextTick();
+        expect($ul.find('li').not('.empty-placeholder').length).toBe(1);
+        expect($ul.find('.empty-placeholder').length).toBe(0);
+        
+        $ul.remove();
+    });
 });
