@@ -101,7 +101,7 @@ describe('Keyed Diffing (Reconciliation)', () => {
 
         await $.nextTick();
         
-        const originalChildren = $ul.children().toArray();
+        const originalChildrenMap = new Map($ul.children().toArray().map(el => [Number($(el).text()), el]));
 
         // Reverse
         items.value = [5, 4, 3, 2, 1];
@@ -114,7 +114,7 @@ describe('Keyed Diffing (Reconciliation)', () => {
         items.value.forEach((val, idx) => {
             expect(Number($(newChildren[idx]).text())).toBe(val);
              // Find original element for this val
-             const orig = originalChildren.find(el => Number($(el).text()) === val);
+             const orig = originalChildrenMap.get(val);
              expect(newChildren[idx] === orig).toBe(true);
         });
 
