@@ -1,8 +1,14 @@
 # Changelog
 
+## [0.2.1] - 2026-01-15
+
+### Fixed
+
+- **Initialization Loophole**: Moved `enablejQueryOverrides()` to execute immediately upon import instead of waiting for DOM ready. This ensures jQuery methods are safe to use even in early scripts.
+
 ## [0.2.0] - 2026-01-15
 
-### Added
+### Added - 0.2.0
 
 - **Transparent Lifecycle Management**:
   - Overrode jQuery's `.remove()`, `.empty()`, and `.detach()` to handle atom bindings automatically.
