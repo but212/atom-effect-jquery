@@ -5,7 +5,7 @@ import { debug } from '../src/debug';
 import { getValue, getSelector } from '../src/utils';
 
 import { registry, disableAutoCleanup, enableAutoCleanup } from '../src/registry';
-// @ts-ignore
+// @ts-expect-error
 import { enablejQueryBatching } from '../src/jquery-patch';
 import type { EffectObject } from '../src/types';
 
@@ -399,7 +399,7 @@ describe('Coverage Gap Tests', () => {
     it('list empty to empty update', async () => {
         const items = $.atom([]);
         const $ul = $('<ul>');
-        $ul.atomList(items, { key: 'id', render: i => '', empty: 'empty' });
+        $ul.atomList(items, { key: 'id', render: _i => '', empty: 'empty' });
         await wait();
         
         // Trigger update with same empty array (new ref)
