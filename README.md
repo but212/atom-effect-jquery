@@ -165,19 +165,17 @@ $('#app').atomMount(Counter, { initial: 10 });
 
 ## Advanced Features
 
-### Automatic Cleanup
+### Transparent Lifecycle Management
 
-When an element bound with `atom-effect-jquery` is removed from the DOM (e.g., via `.remove()` or `.empty()`), the library automatically detects this via `MutationObserver` and cleans up all associated subscribers and effects. You don't need to manually dispose of your bindings.
+Memory management is handled automatically through overrides of standard jQuery methods. You don't need to manually dispose of bindings.
 
-### jQuery Event Batching
+- **`.remove()` / `.empty()`**: Automatically cleans up all associated reactivity and event listeners to prevent memory leaks.
+- **`.detach()`**: Preserves bindings and reactivity. Perfect for moving elements around in the DOM without losing their state connection.
+- **Auto-Cleanup**: A `MutationObserver` acts as a safety net for elements removed via other means (e.g. `innerHTML`), ensuring eventual cleanup.
 
-To ensure optimal performance, you can enable global patching of jQuery's event handlers. This wraps every jQuery event handler in a `batch()`, so multiple state updates within a single event only trigger one DOM update.
+### Performance Optimization
 
-```typescript
-import { enablejQueryBatching } from 'atom-effect-jquery';
-
-enablejQueryBatching(); // Call this once at startup
-```
+The library automatically patches jQuery's event methods (`.on`, `.off`) to wrap handlers in `$.batch()`. This ensures that multiple state updates triggering within a single event (e.g., a click handler) are batched together, resulting in a single re-render.
 
 ### Debug Mode
 

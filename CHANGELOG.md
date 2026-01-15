@@ -1,12 +1,24 @@
 # Changelog
 
-## [0.1.1] - 2026-01-15
+## [0.2.0] - 2026-01-15
 
 ### Added
 
+- **Transparent Lifecycle Management**:
+  - Overrode jQuery's `.remove()`, `.empty()`, and `.detach()` to handle atom bindings automatically.
+  - `.remove()` / `.empty()`: Instantly cleans up bindings to prevent memory leaks.
+  - `.detach()`: Preserves bindings (prevents auto-cleanup), so elements remain reactive when re-attached.
+- **Registry & Safety**:
+  - Added `preservedNodes` logic to the binding registry to support temporary detachment.
+  - `enablejQueryOverrides()` is now enabled by default on import.
+
+## [0.1.1] - 2026-01-15
+
+### Added - 0.1.1
+
 - **Example**: Add basic example page.
 
-### Changed
+### Changed - 0.1.1
 
 - **Debug Utility**: Resolved race conditions and style pollution in `highlightElement`.
   - Implemented timer cleanup to prevent overlapping highlight effects.
