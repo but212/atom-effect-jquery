@@ -44,6 +44,7 @@ export interface ListOptions<T> {
   key: keyof T | ((item: T, index: number) => string | number);
   render: (item: T, index: number) => string;
   bind?: ($el: JQuery, item: T, index: number) => void;
+  update?: ($el: JQuery, item: T, index: number) => void;
   onAdd?: ($el: JQuery) => void;
   onRemove?: ($el: JQuery) => Promise<void> | void;
   empty?: string;
