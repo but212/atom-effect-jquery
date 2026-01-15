@@ -123,13 +123,12 @@ function highlightElement($el: JQuery): void {
   if (!el || !document.contains(el)) return;
 
   const TIMER_KEY = 'atom_debug_timer';
+  const CLEANUP_TIMER_KEY = 'atom_debug_cleanup_timer';
   const ORG_STYLE_KEY = 'atom_debug_org_style';
 
-  // 1. Clear existing timer if any (debounce effect)
-  const existingTimer = $el.data(TIMER_KEY);
-  if (existingTimer) {
-    clearTimeout(existingTimer);
-  }
+  // 1. Clear existing timers for both restoration and cleanup
+  clearTimeout($el.data(TIMER_KEY));
+  clearTimeout($el.data(CLEANUP_TIMER_KEY));
 
   // 2. Save original style only if not already actively highlighting
   // (meaning this is the start of a highlight sequence)
@@ -148,9 +147,6 @@ function highlightElement($el: JQuery): void {
     'transition': 'none' // Remove transition for instant feedback on update
   });
 
-  // Force a reflow for transition to work if we want fade out later,
-  // but for "flash" immediate red is better.
-
   // 4. Set timer to restore
   const timerId = setTimeout(() => {
     // Restore original styles
@@ -168,11 +164,13 @@ function highlightElement($el: JQuery): void {
 
         // 5. Cleanup data after fade out
         // Wait for transition to finish (500ms)
-        setTimeout(() => {
+        const cleanupTimerId = setTimeout(() => {
             $el.css('transition', originalStyles?.transition || '');
             $el.removeData(TIMER_KEY);
+            $el.removeData(CLEANUP_TIMER_KEY);
             $el.removeData(ORG_STYLE_KEY);
         }, 500);
+        $el.data(CLEANUP_TIMER_KEY, cleanupTimerId);
     });
 
   }, 100); // Flash duration
