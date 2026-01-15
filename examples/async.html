@@ -373,7 +373,7 @@
 <span class="code-comment">// Async Computed</span>
 <span class="code-keyword">const</span> results = $.<span class="code-function">computed</span>(<span class="code-keyword">async</span> () => {
   <span class="code-keyword">if</span> (query.value.length < 2) <span class="code-keyword">return</span> [];
-  <span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<span class="code-string">`...?q=${query.value}`</span>);
+  <span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<span class="code-string">`https://api.github.com/search/users?q=${encodeURIComponent(query.value)}`</span>);
   <span class="code-keyword">return</span> res.<span class="code-function">json</span>();
 }, { defaultValue: [] });
 
