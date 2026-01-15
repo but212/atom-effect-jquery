@@ -114,25 +114,66 @@ function getDebugSelector($el: JQuery): string {
 /**
  * Visual highlight - flashes a red border.
  * Inspired by React DevTools "Highlight updates".
+ * 
+ * Uses data attributes to manage state and prevent style pollution
+ * when updates happen rapidly.
  */
 function highlightElement($el: JQuery): void {
-  // Save current outline
-  const originalOutline = $el.css('outline');
-  const originalTransition = $el.css('transition');
+  const el = $el[0];
+  if (!el || !document.contains(el)) return;
 
-  // Apply red border
+  const TIMER_KEY = 'atom_debug_timer';
+  const CLEANUP_TIMER_KEY = 'atom_debug_cleanup_timer';
+  const ORG_STYLE_KEY = 'atom_debug_org_style';
+
+  // 1. Clear existing timers for both restoration and cleanup
+  clearTimeout($el.data(TIMER_KEY));
+  clearTimeout($el.data(CLEANUP_TIMER_KEY));
+
+  // 2. Save original style only if not already actively highlighting
+  // (meaning this is the start of a highlight sequence)
+  if (!$el.data(ORG_STYLE_KEY)) {
+    $el.data(ORG_STYLE_KEY, {
+      outline: $el.css('outline'),
+      outlineOffset: $el.css('outline-offset'),
+      transition: $el.css('transition')
+    });
+  }
+
+  // 3. Apply highlight style
   $el.css({
-    'outline': '2px solid #ff4444',
+    'outline': '2px solid rgba(255, 68, 68, 0.8)',
     'outline-offset': '1px',
-    'transition': 'outline 0.1s ease-out'
+    'transition': 'none' // Remove transition for instant feedback on update
   });
 
-  // Restore after 200ms
-  setTimeout(() => {
-    $el.css({
-      'outline': originalOutline || '',
-      'outline-offset': '',
-      'transition': originalTransition || ''
+  // 4. Set timer to restore
+  const timerId = setTimeout(() => {
+    // Restore original styles
+    const originalStyles = $el.data(ORG_STYLE_KEY);
+    
+    // We add a transition for the fade out
+    $el.css('transition', 'outline 0.5s ease-out');
+    
+    // Defer the actual style restoration to allow transition to take effect
+    requestAnimationFrame(() => {
+        $el.css({
+            'outline': originalStyles?.outline || '',
+            'outline-offset': originalStyles?.outlineOffset || ''
+        });
+
+        // 5. Cleanup data after fade out
+        // Wait for transition to finish (500ms)
+        const cleanupTimerId = setTimeout(() => {
+            $el.css('transition', originalStyles?.transition || '');
+            $el.removeData(TIMER_KEY);
+            $el.removeData(CLEANUP_TIMER_KEY);
+            $el.removeData(ORG_STYLE_KEY);
+        }, 500);
+        $el.data(CLEANUP_TIMER_KEY, cleanupTimerId);
     });
-  }, 200);
+
+  }, 100); // Flash duration
+
+  $el.data(TIMER_KEY, timerId);
 }

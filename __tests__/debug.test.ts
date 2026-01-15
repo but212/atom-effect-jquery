@@ -93,7 +93,7 @@ describe('Debug Mode', () => {
   it('highlightElement should apply styles (internal check via side effects)', () => {
     vi.useFakeTimers();
     $.atom.debug = true;
-    const $el = $('<div>');
+    const $el = $('<div>').appendTo('body');
     
     debug.domUpdated($el, 'test', 'val');
     

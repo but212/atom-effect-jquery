@@ -1,8 +1,21 @@
 # Changelog
 
-## [0.1.0] - 2026-01-15
+## [0.1.1] - 2026-01-15
 
 ### Added
+
+- **Example**: Add basic example page.
+
+### Changed
+
+- **Debug Utility**: Resolved race conditions and style pollution in `highlightElement`.
+  - Implemented timer cleanup to prevent overlapping highlight effects.
+  - Enhanced original style preservation using data attributes to ensure styles aren't overwritten by highlight colors.
+  - Added smooth CSS transitions for recovery and automated cleanup of temporary metadata.
+
+## [0.1.0] - 2026-01-15
+
+### Added - 0.1.0
 
 - **Core Integration**: Initial release of `atom-effect-jquery`, providing reactive bindings for jQuery using `@but212/atom-effect`.
 - **Static Methods**: Extends jQuery with core reactive primitives:

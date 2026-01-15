@@ -1,5 +1,8 @@
 # atom-effect-jquery
 
+[![npm version](https://img.shields.io/npm/v/atom-effect-jquery.svg)](https://www.npmjs.com/package/atom-effect-jquery)
+[![License](https://img.shields.io/npm/l/atom-effect-jquery.svg)](https://github.com/but212/atom-effect-jquery/blob/main/LICENSE)
+
 **Reactive jQuery bindings powered by [atom-effect](https://github.com/but212/atom-effect).**
 
 `atom-effect-jquery` brings modern, fine-grained reactivity to jQuery applications. It allows you to bind DOM elements directly to atoms, ensuring efficient updates without manual DOM manipulation. It also features automatic cleanup of effects when elements are removed from the DOM, resolving one of the biggest pain points in jQuery development (memory leaks).
@@ -15,27 +18,45 @@
 
 ## Installation
 
+### NPM
+
 ```bash
 npm install atom-effect-jquery jquery @but212/atom-effect
 # or
 pnpm add atom-effect-jquery jquery @but212/atom-effect
 ```
 
+### CDN
+
+```html
+<!-- Load jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Load atom-effect-jquery -->
+<script src="https://cdn.jsdelivr.net/npm/atom-effect-jquery@0.1.1"></script>
+```
+
 ## Basic Usage
 
-```typescript
-import $ from 'jquery';
-import 'atom-effect-jquery';
+```javascript
+// If using NPM:
+// import $ from 'jquery';
+// import 'atom-effect-jquery';
 
 // 1. Create State
 const count = $.atom(0);
+const doubled = $.computed(() => count.value * 2);
 
 // 2. Bind to DOM
 $('#count').atomText(count);
+$('#doubled').atomText(doubled);
 
 // 3. Update State (DOM updates automatically)
-$('#increment').on('click', () => {
-  count.value++;
+$('#increment').on('click', () => count.value++);
+$('#decrement').on('click', () => count.value--);
+
+// 4. React to changes (Side Effects)
+$.effect(() => {
+  console.log(`Current count: ${count.value}, Doubled: ${doubled.value}`);
 });
 ```
 
