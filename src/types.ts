@@ -72,6 +72,7 @@ declare global {
       debug: boolean;
     };
     computed<T>(fn: () => T, options?: ComputedOptions<T>): ComputedAtom<T>;
+    computed<T>(fn: () => Promise<T>, options: ComputedOptions<T> & { defaultValue: T }): ComputedAtom<T>;
     effect(fn: () => void | (() => void)): EffectObject;
     batch(fn: () => void): void;
     untracked<T>(fn: () => T): T;

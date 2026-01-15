@@ -1,8 +1,36 @@
 # Changelog
 
-## [0.3.0] - 2026-01-15
+## [0.4.0]
 
 ### Added
+
+- **Async Computed Type Support**: Added TypeScript overload for `$.computed()` to properly infer types when using async functions with `defaultValue`.
+
+  ```typescript
+  // Now correctly infers ComputedAtom<User> instead of ComputedAtom<Promise<User>>
+  const userData = $.computed(
+    async () => await fetchUser(userId.value),
+    { defaultValue: { id: 0, name: '' } }
+  );
+  ```
+
+- **Async Computed Tests**: Comprehensive test suite for async computed patterns including:
+  - `isPending`, `hasError`, `isResolved` state tracking
+  - Dependency change re-computation
+  - Debounced search pattern
+  - Error handling with `lastError`
+- **Async Data Fetching Example**: New standalone HTML example demonstrating React Query-like data fetching patterns.
+
+- **Async Computed Example**: New standalone HTML example demonstrating async computed patterns.
+
+### Changed
+
+- **`ListOptions.render` Return Type**: Now accepts `string | Element`, enabling type-safe SVG element creation via `createElementNS()`.
+- **Keyed Diffing Test Optimization**: Replaced O(n²) `find()` lookup with O(1) `Map` lookup.
+
+## [0.3.0] - 2026-01-15
+
+### Added - 0.3.0
 
 - **Smart Reconciliation (Keyed Diffing)**:
   - Implemented Keyed Diffing for `.atomList()` using the LIS (Longest Increasing Subsequence) algorithm.

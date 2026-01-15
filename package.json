@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
-    "@but212/atom-effect": "^0.5.1",
+    "@but212/atom-effect": "^0.6.0",
     "@types/jquery": "^3.5.33",
     "@vitest/coverage-v8": "^4.0.17",
     "jquery": "^3.7.1",
