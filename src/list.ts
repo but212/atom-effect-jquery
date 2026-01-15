@@ -5,47 +5,71 @@ import { debug } from './debug';
 import { getSelector } from './utils';
 import type { ListOptions, ReadonlyAtom } from './types';
 
-// Helper: Longest Increasing Subsequence (LIS)
+/**
+ * Helper: Longest Increasing Subsequence (LIS)
+ * O(N log N) algorithm used to minimize DOM moves in the diffing algorithm.
+ */
 function getLIS(arr: number[]): number[] {
-  const p = arr.slice();
+  if (arr.length === 0) return [];
+
+  // predecessors: stores the index of the previous element for backtracking
+  const predecessors = arr.slice();
+
+  // result: stores the indices of the longest increasing subsequence found so far
+  // result[k] is the index of the last element of an increasing subsequence of length k+1
   const result: number[] = [0];
-  let i: number, j: number, u: number, v: number, c: number;
+
+  let i: number, left: number, right: number, mid: number;
   const len = arr.length;
 
   for (i = 0; i < len; i++) {
     const arrI = arr[i];
+
+    // -1 is treated as "not present" or "ignored" (specific to the diff algorithm)
     if (arrI !== -1) {
-      j = result[result.length - 1];
-      if (arr[j] < arrI) {
-        p[i] = j;
+      const lastResultIndex = result[result.length - 1];
+
+      // Case A: If current value is greater than the last value in result -> append (Greedy)
+      if (arr[lastResultIndex] < arrI) {
+        predecessors[i] = lastResultIndex;
         result.push(i);
         continue;
       }
-      u = 0;
-      v = result.length - 1;
-      while (u < v) {
-        c = ((u + v) / 2) | 0;
-        if (arr[result[c]] < arrI) {
-          u = c + 1;
+
+      // Case B: If current value is smaller or equal -> find the insertion point (Binary Search)
+      // Updates with a smaller value to increase future possibilities without breaking the sequence
+      left = 0;
+      right = result.length - 1;
+
+      while (left < right) {
+        mid = ((left + right) / 2) | 0;
+        if (arr[result[mid]] < arrI) {
+          left = mid + 1;
         } else {
-          v = c;
+          right = mid;
         }
       }
-      if (arrI < arr[result[u]]) {
-        if (u > 0) {
-          p[i] = result[u - 1];
+
+      // Replace if the current value is smaller than the value at the found position
+      if (arrI < arr[result[left]]) {
+        if (left > 0) {
+          // Link the predecessor
+          predecessors[i] = result[left - 1];
         }
-        result[u] = i;
+        result[left] = i;
       }
     }
   }
 
-  u = result.length;
-  v = result[u - 1];
+  // Backtracking: reconstruct the actual LIS path using predecessors
+  let u = result.length;
+  let v = result[u - 1];
+
   while (u-- > 0) {
     result[u] = v;
-    v = p[v];
+    v = predecessors[v];
   }
+
   return result;
 }
 
