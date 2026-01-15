@@ -23,9 +23,19 @@ function getInitialDebugState(): boolean {
     }
   }
 
-  // Node/Bundler: check NODE_ENV
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+  // Vite support
+  if (import.meta.env && import.meta.env.DEV) {
     return true;
+  }
+
+  // Node/Bundler check
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+      return true;
+    }
+  } catch (e) {
+    // ignore
   }
 
   return false;

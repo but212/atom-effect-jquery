@@ -30,12 +30,11 @@
   "author": "but212",
   "license": "MIT",
   "peerDependencies": {
-    "@but212/atom-effect": ">=0.2.0",
     "jquery": ">=3.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
-    "@but212/atom-effect": "^0.2.0",
+    "@but212/atom-effect": "^0.5.1",
     "@types/jquery": "^3.5.33",
     "@vitest/coverage-v8": "^4.0.16",
     "jquery": "^3.7.1",
