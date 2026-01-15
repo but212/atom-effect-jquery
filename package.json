@@ -1,6 +1,6 @@
 {
   "name": "atom-effect-jquery",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Reactive jQuery bindings powered by atom-effect",
   "keywords": [
     "jquery",
