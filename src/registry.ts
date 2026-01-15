@@ -142,9 +142,11 @@ export function enableAutoCleanup(root: Element = document.body): void {
           return; 
         }
 
-        if (node instanceof Element) {
+        // Use nodeType === 1 check instead of instanceof Element to avoid
+        // ReferenceError during test teardown where Element might be undefined
+        if (node.nodeType === 1) {
           // Cleanup removed node and all its descendants recursively
-          registry.cleanupTree(node);
+          registry.cleanupTree(node as Element);
         }
       });
     }
