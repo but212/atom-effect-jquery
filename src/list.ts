@@ -196,9 +196,8 @@ $.fn.atomList = function<T>(
           }
           nextNode = el; // This node is now the anchor
         } else {
-          // NEW
-          const html = render(item, i);
-          const $el = $(html);
+          const rendered = render(item, i);
+          const $el: JQuery = (rendered instanceof Element ? $(rendered) : $(rendered as string)) as JQuery;
           itemMap.set(key, { $el, item });
 
           if (nextNode) {

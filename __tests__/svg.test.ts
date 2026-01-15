@@ -96,7 +96,7 @@ describe('SVG Support', () => {
                 el.setAttribute("cx", String(i*10));
                 el.setAttribute("cy", "10");
                 el.setAttribute("r", "5");
-                return el as unknown as string; 
+                return el;
             }
         });
         
