@@ -1,8 +1,17 @@
 # Changelog
 
+## [0.3.0] - 2026-01-15
+
+### Added
+
+- **Smart Reconciliation (Keyed Diffing)**:
+  - Implemented Keyed Diffing for `.atomList()` using the LIS (Longest Increasing Subsequence) algorithm.
+  - Minimizes DOM movements and re-insertions, preserving element state (like focus) and improving performance.
+  - Elements are now properly reused when moving in the list, rather than destroyed and recreated.
+
 ## [0.2.1] - 2026-01-15
 
-### Fixed
+### Fixed - 0.2.1
 
 - **Initialization Loophole**: Moved `enablejQueryOverrides()` to execute immediately upon import instead of waiting for DOM ready. This ensures jQuery methods are safe to use even in early scripts.
 
