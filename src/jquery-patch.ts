@@ -49,10 +49,8 @@ export function enablejQueryOverrides() {
     this.each(function () {
       const children = this.querySelectorAll('*');
       children.forEach(child => registry.cleanup(child));
-      // Note: cleanupTree(this) would unsubscribe the element itself, which is wrong for empty().
-      // equivalent to calling cleanupTree on direct children.
-      // But querySelectorAll('*') gets all descendants.
-      // registry.cleanup(child) checks boundElements.
+      // Note: cleanupTree(this) would unsubscribe the element itself, which is incorrect for .empty().
+      // We must clean up all descendants. `querySelectorAll('*')` achieves this.
     });
 
     return originalEmpty.call(this);
