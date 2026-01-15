@@ -18,11 +18,16 @@ import './unified';
 import './list';
 import './mount';
 
+
 // Auto-cleanup (Crucial!)
 import { enableAutoCleanup, disableAutoCleanup, registry } from './registry';
+import { enablejQueryOverrides } from './jquery-patch';
 
 // Auto-enable on DOM ready
-$(() => enableAutoCleanup(document.body));
+$(() => {
+  enableAutoCleanup(document.body);
+  enablejQueryOverrides();
+});
 
 // Explicit import support
 export {
@@ -44,7 +49,8 @@ export type {
 } from './types';
 
 // Optional: Auto-batching for jQuery events
-export { enablejQueryBatching } from './jquery-patch';
+export { enablejQueryOverrides, enablejQueryBatching } from './jquery-patch';
 
 export { registry, enableAutoCleanup, disableAutoCleanup };
 export default $;
+

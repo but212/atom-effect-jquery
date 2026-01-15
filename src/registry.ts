@@ -25,6 +25,20 @@ class BindingRegistry {
   private boundElements = new WeakSet<Element>();
 
   /**
+   * Tracks elements that are temporarily detached (e.g. via .detach())
+   * so they are NOT cleaned up by the MutationObserver.
+   */
+  private preservedNodes = new WeakSet<Node>();
+
+  keep(node: Node): void {
+    this.preservedNodes.add(node);
+  }
+
+  isKept(node: Node): boolean {
+    return this.preservedNodes.has(node);
+  }
+
+  /**
    * Registers an Effect to be disposed later.
    */
   trackEffect(el: Element, fx: EffectObject): void {
@@ -123,6 +137,11 @@ export function enableAutoCleanup(root: Element = document.body): void {
   observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       mutation.removedNodes.forEach(node => {
+        // If the node is marked as "kept" (e.g. .detach()), skip cleanup
+        if (registry.isKept(node)) {
+          return; 
+        }
+
         if (node instanceof Element) {
           // Cleanup removed node and all its descendants recursively
           registry.cleanupTree(node);
