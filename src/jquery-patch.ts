@@ -7,12 +7,16 @@ import { batch } from '@but212/atom-effect';
  */
 const handlerMap = new WeakMap<Function, Function>();
 
+let isjQueryBatchingEnabled = false;
+
 /**
  * Patches jQuery event methods to automatically wrap handlers in a batch().
  * This ensures that state changes inside standard jQuery event handlers
  * trigger updates efficiently.
  */
 export function enablejQueryBatching() {
+  if (isjQueryBatchingEnabled) return;
+  isjQueryBatchingEnabled = true;
   const originalOn = $.fn.on;
   const originalOff = $.fn.off;
 
