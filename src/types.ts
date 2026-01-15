@@ -77,6 +77,7 @@ declare global {
     isAtom(v: unknown): boolean;
     isComputed(v: unknown): boolean;
     isReactive(v: unknown): boolean;
+    nextTick(): Promise<void>;
   }
 
   interface JQuery {

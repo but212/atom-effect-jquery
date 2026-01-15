@@ -2,10 +2,6 @@ import { describe, it, expect } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
 
-function tick() {
-  return new Promise(resolve => setTimeout(resolve, 0));
-}
-
 describe('List Rendering', () => {
   it('should render list', async () => {
     const items = $.atom([{ id: 1, text: 'A' }, { id: 2, text: 'B' }]);
@@ -16,19 +12,19 @@ describe('List Rendering', () => {
         render: (item) => `<li id="item-${item.id}">${item.text}</li>`
     });
 
-    await tick();
+    await $.nextTick();
     expect($ul.children().length).toBe(2);
     expect($ul.find('#item-1').text()).toBe('A');
     expect($ul.find('#item-2').text()).toBe('B');
 
     // Add item
     items.value = [...items.value, { id: 3, text: 'C' }];
-    await tick();
+    await $.nextTick();
     expect($ul.children().length).toBe(3);
     
     // Remove item
     items.value = items.value.filter(i => i.id !== 2);
-    await tick();
+    await $.nextTick();
     expect($ul.children().length).toBe(2);
     expect($ul.find('#item-2').length).toBe(0);
     
@@ -50,11 +46,11 @@ describe('List Rendering', () => {
       }
     });
 
-    await tick();
+    await $.nextTick();
     expect(added).toEqual([1]);
 
     list.value = [{id:2}]; // Replace 1 with 2
-    await tick();
+    await $.nextTick();
     
     // Check added
     expect(added).toEqual([1, 2]);
@@ -76,17 +72,17 @@ describe('List Rendering', () => {
       empty: '<li class="empty">No Items</li>'
     });
     
-    await tick();
+    await $.nextTick();
     expect($ul.find('.empty').length).toBe(1);
     expect($ul.text()).toBe('No Items');
     
     list.value = [1];
-    await tick();
+    await $.nextTick();
     expect($ul.find('.empty').length).toBe(0);
     expect($ul.text()).toBe('1');
     
     list.value = [];
-    await tick();
+    await $.nextTick();
     expect($ul.find('.empty').length).toBe(1);
     
     $ul.remove();

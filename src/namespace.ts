@@ -50,6 +50,15 @@ Object.defineProperty(atom, 'debug', {
 });
 
 /**
+ * Waits for the next microtask (tick).
+ * Useful for waiting for batched updates to complete in tests or async logic.
+ * logic: Uses setTimeout to ensure it runs after all microtasks (where effects are processed).
+ */
+function nextTick(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/**
  * Extend jQuery static methods.
  */
 $.extend({
@@ -60,5 +69,6 @@ $.extend({
   untracked,
   isAtom,
   isComputed,
-  isReactive: (v: unknown) => isAtom(v) || isComputed(v)
+  isReactive: (v: unknown) => isAtom(v) || isComputed(v),
+  nextTick
 });

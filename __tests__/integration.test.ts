@@ -2,10 +2,6 @@ import { describe, it, expect } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
 
-function tick() {
-  return new Promise(resolve => setTimeout(resolve, 0));
-}
-
 describe('Integration', () => {
     it('should handle complex updates', async () => {
         // Counter app simulation
@@ -21,11 +17,11 @@ describe('Integration', () => {
         $count.atomText(count);
         $inc.atomOn('click', () => count.value++);
         
-        await tick();
+        await $.nextTick();
         expect($count.text()).toBe('0');
         
         $inc.click();
-        await tick();
+        await $.nextTick();
         expect($count.text()).toBe('1');
         
         $app.remove();

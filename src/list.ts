@@ -68,11 +68,23 @@ $.fn.atomList = function<T>(
         const existing = itemMap.get(k);
 
         if (existing) {
-          // Reposition
-          if ($prev) {
-            $prev.after(existing.$el);
-          } else {
-            $container.prepend(existing.$el);
+          // Reposition if needed (Reconciliation)
+          const node = existing.$el[0]!;
+          const prevNode = $prev ? $prev[0] : null;
+
+          // Ideal next sibling
+          // If prevNode exists, our node should be prevNode.nextSibling
+          // If prevNode is null, our node should be container.firstChild
+          const isAtCorrectPos = prevNode 
+            ? node.previousSibling === prevNode
+            : node === $container[0]!.firstChild;
+
+          if (!isAtCorrectPos) {
+            if ($prev) {
+              $prev.after(existing.$el);
+            } else {
+              $container.prepend(existing.$el);
+            }
           }
           existing.item = item;
           $prev = existing.$el;

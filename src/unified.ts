@@ -224,11 +224,9 @@ $.fn.atomBind = function<T extends string | number | boolean | null | undefined>
     }
 
     // Register Effects
-    if (effects.length > 0) {
-      const fx = effect(() => {
-        effects.forEach(fn => fn());
-      });
+    effects.forEach(fn => {
+      const fx = effect(fn);
       registry.trackEffect(this, fx);
-    }
+    });
   });
 };

@@ -43,5 +43,8 @@ export type {
   ComponentFn
 } from './types';
 
+// Optional: Auto-batching for jQuery events
+export { enablejQueryBatching } from './jquery-patch';
+
 export { registry, enableAutoCleanup, disableAutoCleanup };
 export default $;

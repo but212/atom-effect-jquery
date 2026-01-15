@@ -2,21 +2,17 @@ import { describe, it, expect } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
 
-function tick() {
-  return new Promise(resolve => setTimeout(resolve, 0));
-}
-
 describe('Chainable Methods', () => {
   it('atomText should bind text', async () => {
     const text = $.atom('initial');
     const $el = $('<div>').appendTo(document.body);
     $el.atomText(text);
 
-    await tick();
+    await $.nextTick();
     expect($el.text()).toBe('initial');
 
     text.value = 'updated';
-    await tick();
+    await $.nextTick();
     expect($el.text()).toBe('updated');
     $el.remove();
   });
@@ -26,11 +22,11 @@ describe('Chainable Methods', () => {
     const $el = $('<div>').appendTo(document.body);
     $el.atomClass('active', isActive);
 
-    await tick();
+    await $.nextTick();
     expect($el.hasClass('active')).toBe(false);
 
     isActive.value = true;
-    await tick();
+    await $.nextTick();
     expect($el.hasClass('active')).toBe(true);
     $el.remove();
   });
@@ -40,11 +36,11 @@ describe('Chainable Methods', () => {
     const $el = $('<img>').appendTo(document.body);
     $el.atomAttr('src', src);
 
-    await tick();
+    await $.nextTick();
     expect($el.attr('src')).toBe('img.jpg');
 
     src.value = 'new.jpg';
-    await tick();
+    await $.nextTick();
     expect($el.attr('src')).toBe('new.jpg');
     $el.remove();
   });
@@ -59,11 +55,11 @@ describe('Chainable Methods', () => {
 
     $el.atomText(doubled);
     
-    await tick();
+    await $.nextTick();
     expect($el.text()).toBe('2');
     
     count.value = 2;
-    await tick();
+    await $.nextTick();
     expect($el.text()).toBe('4');
     $el.remove();
   });

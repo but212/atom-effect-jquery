@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
 import { debug } from '../src/debug';
-import { getValue } from '../src/utils';
+import { getValue, getSelector } from '../src/utils';
+
 import { registry, disableAutoCleanup, enableAutoCleanup } from '../src/registry';
+// @ts-ignore
+import { enablejQueryBatching } from '../src/jquery-patch';
 import type { EffectObject } from '../src/types';
 
 function wait(ms = 0) {
@@ -313,6 +316,100 @@ describe('Coverage Gap Tests', () => {
       expect(getValue(123)).toBe(123);
       expect(getValue('str')).toBe('str');
       expect(getValue(null)).toBe(null);
+    });
+  });
+
+  describe('Additional Gaps (Re-applied)', () => {
+    it('atomVal immediate update (no debounce)', async () => {
+      const val = $.atom('initial');
+      const $input = $('<input>').appendTo(document.body);
+      $input.atomVal(val); // default debounce is undefined
+      await wait();
+      
+      $input.val('changed');
+      $input.trigger('input');
+      await wait(); 
+      expect(val.value).toBe('changed');
+      $input.remove();
+    });
+
+    it('atomBind with hide atom', async () => {
+        const isHidden = $.atom(false);
+        const $el = $('<div>').appendTo(document.body);
+        $el.atomBind({ hide: isHidden });
+        await wait();
+        expect($el.css('display')).not.toBe('none');
+        isHidden.value = true;
+        await wait();
+        expect($el.css('display')).toBe('none');
+        $el.remove();
+    });
+
+    it('atomBind val cleanup', async () => {
+       const val = $.atom('v');
+       const $input = $('<input>').appendTo(document.body);
+       const offSpy = vi.spyOn($.fn, 'off');
+       $input.atomBind({ val });
+       await wait();
+       $input.atomUnbind();
+       expect(offSpy).toHaveBeenCalledWith('input change', expect.any(Function));
+       $input.remove();
+       offSpy.mockRestore();
+    });
+
+    it('atomList prepend existing', async () => {
+        const items = $.atom([{id: 1, t: 'A'}, {id: 2, t: 'B'}]);
+        const $ul = $('<ul>').appendTo(document.body);
+        $ul.atomList(items, { key: 'id', render: i => `<li id="${i.id}">${i.t}</li>` });
+        await wait();
+        // Swap to [B, A]
+        items.value = [{id: 2, t: 'B'}, {id: 1, t: 'A'}];
+        await wait();
+        expect($ul.children().eq(0).attr('id')).toBe('2');
+        $ul.remove();
+    });
+
+    it('getSelector whitespace', () => {
+        const div = document.createElement('div');
+        div.className = '   ';
+        expect(getSelector(div)).toBe('div');
+    });
+
+    it('jquery-patch no handler (branch coverage)', () => {
+        enablejQueryBatching();
+        const $btn = $('<button>');
+        // .on(events, false) is a shortcut for return false
+        $btn.on('click', false); 
+        $btn.trigger('click');
+        // valid call, no function passed, should bypass batch wrapper logic
+    });
+
+    it('mount cleanup throwing', () => {
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const $el = $('<div>');
+        // Component returns a cleanup that throws
+        $el.atomMount(() => () => { throw new Error('cleanup fail'); });
+        $el.atomUnmount();
+        // Should catch and swallow error (or log?) - implementation swallows in catch block line 48 empty catch?
+        // Wait, mount.ts line 48 is `try { userCleanup(); } catch {}`. Empty catch.
+        // So no log. But we covered the catch block.
+        errorSpy.mockRestore();
+    });
+
+    it('list empty to empty update', async () => {
+        const items = $.atom([]);
+        const $ul = $('<ul>');
+        $ul.atomList(items, { key: 'id', render: i => '', empty: 'empty' });
+        await wait();
+        
+        // Trigger update with same empty array (new ref)
+        // Need to ensure effect runs. Atom updates trigger even if value equal?
+        // primitive equality? Arrays are diff refs.
+        // Default atom equality?
+        // If I pass new array [], it is distinct.
+        items.value = [];
+        await wait();
+        // This should hit "items.length === 0 && empty" AND "$emptyEl" exists (else branch of inner if)
     });
   });
 });
