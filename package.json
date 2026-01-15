@@ -6,6 +6,8 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "unpkg": "./dist/atom-effect-jquery.min.js",
+  "jsdelivr": "./dist/atom-effect-jquery.min.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,11 +18,11 @@
   "files": [
     "dist"
   ],
-  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:coverage": "vitest --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",

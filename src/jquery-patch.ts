@@ -7,16 +7,21 @@ import { batch } from '@but212/atom-effect';
  */
 const handlerMap = new WeakMap<Function, Function>();
 
+let isjQueryBatchingEnabled = false;
+
 /**
  * Patches jQuery event methods to automatically wrap handlers in a batch().
  * This ensures that state changes inside standard jQuery event handlers
  * trigger updates efficiently.
  */
 export function enablejQueryBatching() {
+  if (isjQueryBatchingEnabled) return;
+  isjQueryBatchingEnabled = true;
   const originalOn = $.fn.on;
   const originalOff = $.fn.off;
 
   // Patch .on()
+  // biome-ignore lint/suspicious/noExplicitAny: jQuery method patching requires dynamic arguments
   $.fn.on = function (this: any, ...args: any[]) {
     // 1. Find the handler function in arguments
     // jQuery .on() signatures are flexible, but the handler is always 
@@ -33,12 +38,14 @@ export function enablejQueryBatching() {
       const originalFn = args[fnIndex];
       
       // 2. reuse or create wrapper
-      let wrappedFn;
+      let wrappedFn: Function | undefined;
       if (handlerMap.has(originalFn)) {
         wrappedFn = handlerMap.get(originalFn);
       } else {
+        // biome-ignore lint/suspicious/noExplicitAny: preserving internal this context
         wrappedFn = function (this: any, ...eventArgs: any[]) {
-          let result;
+          // biome-ignore lint/suspicious/noExplicitAny: capture any return value
+          let result: any;
           batch(() => {
             result = originalFn.apply(this, eventArgs);
           });
@@ -52,10 +59,12 @@ export function enablejQueryBatching() {
     }
 
     // 4. Call original
+    // biome-ignore lint/suspicious/noExplicitAny: dynamic arguments binding
     return originalOn.apply(this, args as any);
   };
 
   // Patch .off()
+  // biome-ignore lint/suspicious/noExplicitAny: jQuery method patching requires dynamic arguments
   $.fn.off = function (this: any, ...args: any[]) {
     // 1. Find the handler
     let fnIndex = -1;
@@ -77,6 +86,7 @@ export function enablejQueryBatching() {
       }
     }
 
+    // biome-ignore lint/suspicious/noExplicitAny: dynamic arguments binding
     return originalOff.apply(this, args as any);
   };
 }

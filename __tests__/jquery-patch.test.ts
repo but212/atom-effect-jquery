@@ -1,9 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import $ from 'jquery';
 import '../src/index';
-// @ts-ignore
 import { enablejQueryBatching } from '../src/jquery-patch';
-import { batch, atom } from '@but212/atom-effect';
+import { atom } from '@but212/atom-effect';
 
 describe('jQuery Auto-Batching', () => {
     it('should batch updates inside jQuery events when enabled', async () => {
@@ -13,7 +12,7 @@ describe('jQuery Auto-Batching', () => {
         let computeCount = 0;
         
         $.effect(() => {
-            const val = count.value;
+            const _val = count.value;
             computeCount++;
         });
         
