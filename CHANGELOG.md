@@ -1,8 +1,14 @@
 # Changelog
 
+## [0.5.0]
+
+### Changed
+
+- **Version Bump**: Bumped version to 0.5.0
+
 ## [0.4.0]
 
-### Added
+### Added - 0.4.0
 
 - **Async Computed Type Support**: Added TypeScript overload for `$.computed()` to properly infer types when using async functions with `defaultValue`.
 
@@ -23,7 +29,7 @@
 
 - **Async Computed Example**: New standalone HTML example demonstrating async computed patterns.
 
-### Changed
+### Changed - 0.4.0
 
 - **`ListOptions.render` Return Type**: Now accepts `string | Element`, enabling type-safe SVG element creation via `createElementNS()`.
 - **Keyed Diffing Test Optimization**: Replaced O(n²) `find()` lookup with O(1) `Map` lookup.
