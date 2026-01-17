@@ -228,8 +228,8 @@ $.fn.atomVal = function<T>(
     let isUpdatingFromAtom = false;  // Prevents infinite loop
     let isComposing = false;         // IME composition state
     let isUpdating = false;          // Update lock flag
+    let hasFocus = false;            // Track focus state for smart formatting
 
-    // ========== IME Events ==========
     const onCompositionStart = () => {
       isComposing = true;
     };
@@ -243,7 +243,19 @@ $.fn.atomVal = function<T>(
     $el.on('compositionstart', onCompositionStart);
     $el.on('compositionend', onCompositionEnd);
 
-    // ========== Update Logic ==========
+    const onFocus = () => { hasFocus = true; };
+    const onBlur = () => {
+      hasFocus = false;
+      // Force formatting on blur to ensure clean display
+      const formatted = format(atom.value);
+      if ($el.val() !== formatted) {
+        $el.val(formatted);
+      }
+    };
+
+    $el.on('focus', onFocus);
+    $el.on('blur', onBlur);
+
     const updateAtom = () => {
       if (isUpdatingFromAtom || isUpdating) return;
       
@@ -252,7 +264,6 @@ $.fn.atomVal = function<T>(
       });
     };
 
-    // ========== DOM → Atom ==========
     const onInput = () => {
       // Ignore if composing or currently updating
       if (isComposing || isUpdating) return;
@@ -269,12 +280,16 @@ $.fn.atomVal = function<T>(
     $el.on(event, onInput);
     $el.on('change', onInput);
     
-    // ========== Atom → DOM ==========
     const fx = effect(() => {
       const formatted = format(atom.value);
+      const currentVal = $el.val() as string;
       
-      // Update only if value matches specific formatted string to prevent cursor jumps or unnecessary updates
-      if ($el.val() !== formatted) {
+      // Update only if value differs
+      if (currentVal !== formatted) {
+        if (hasFocus && parse(currentVal) === atom.value) {
+          return; // Don't interrupt user input
+        }
+        
         isUpdatingFromAtom = true;
         isUpdating = true; // Lock
         $el.val(formatted);
@@ -286,12 +301,13 @@ $.fn.atomVal = function<T>(
 
     registry.trackEffect(this, fx);
 
-    // ========== Cleanup ==========
     registry.trackCleanup(this, () => {
       $el.off(event, onInput);
       $el.off('change', onInput);
       $el.off('compositionstart', onCompositionStart);
       $el.off('compositionend', onCompositionEnd);
+      $el.off('focus', onFocus);
+      $el.off('blur', onBlur);
       if (timeoutId) clearTimeout(timeoutId);
     });
   });
