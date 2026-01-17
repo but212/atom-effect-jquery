@@ -707,51 +707,47 @@
           $badge.removeClass('idle pending resolved rejected');
           $output.removeClass('error');
 
-          // 1. Idle
-          if (state === AsyncState.IDLE) {
-            $badge.addClass('idle').text('Idle');
-            $output.text('—');
-            return;
-          }
+          // Handle states with a switch for clarity
+          switch (state) {
+            case AsyncState.IDLE:
+              $badge.addClass('idle').text('Idle');
+              $output.text('—');
+              break;
 
-          // 2. Pending
-          if (state === AsyncState.PENDING) {
-            $stage.addClass('active');
-            $card.addClass('active');
-            $badge.addClass('pending').text('Loading');
-            $output.html('<span class="spinner"></span>Fetching...');
-            return;
-          }
+            case AsyncState.PENDING:
+              $stage.addClass('active');
+              $card.addClass('active');
+              $badge.addClass('pending').text('Loading');
+              $output.html('<span class="spinner"></span>Fetching...');
+              break;
 
-          // 3. Rejected (Self Error)
-          if (state === AsyncState.REJECTED) {
-            $stage.addClass('rejected');
-            $card.addClass('rejected');
-            $badge.addClass('rejected').text('Failed');
-            $output.addClass('error').text(`⛔ ${error?.message || 'Error'}`);
-            return;
-          }
-
-          // 4. Resolved (Check for Upstream Block)
-          if (state === AsyncState.RESOLVED) {
-            if (hasUpstreamError) {
-              // Blocked by upstream failure
-              $stage.addClass('rejected'); // Use rejected style for blocked
+            case AsyncState.REJECTED:
+              $stage.addClass('rejected');
               $card.addClass('rejected');
-              $badge.addClass('rejected').text('Blocked');
-              $output.addClass('error').text('⛔ Upstream failed');
-            } else {
-              // Success
-              $stage.addClass('resolved');
-              $card.addClass('resolved');
-              $badge.addClass('resolved').text('Done');
-              
-              try {
-                $output.text(format(value));
-              } catch (e) {
-                $output.text('—');
+              $badge.addClass('rejected').text('Failed');
+              $output.addClass('error').text(`⛔ ${error?.message || 'Error'}`);
+              break;
+
+            case AsyncState.RESOLVED:
+              if (hasUpstreamError) {
+                // Blocked by upstream failure
+                $stage.addClass('rejected'); // Use rejected style for blocked
+                $card.addClass('rejected');
+                $badge.addClass('rejected').text('Blocked');
+                $output.addClass('error').text('⛔ Upstream failed');
+              } else {
+                // Success
+                $stage.addClass('resolved');
+                $card.addClass('resolved');
+                $badge.addClass('resolved').text('Done');
+                
+                try {
+                  $output.text(format(value));
+                } catch (e) {
+                  $output.text('—');
+                }
               }
-            }
+              break;
           }
         });
       });
