@@ -10,6 +10,8 @@
  * 2. Runtime: $.atom.debug = true or window.__ATOM_DEBUG__ = true
  */
 
+import { getSelector } from './utils';
+
 /**
  * Determines the initial debug state based on environment.
  * Priority: window.__ATOM_DEBUG__ > NODE_ENV === 'development'
@@ -74,7 +76,7 @@ export const debug = {
     if (!debugEnabled) return;
 
     // Console logging
-    const selector = getDebugSelector($el);
+    const selector = getSelector($el);
     console.log(
       `[atom-effect-jquery] DOM updated: ${selector}.${type} =`,
       value
@@ -96,20 +98,6 @@ export const debug = {
     }
   }
 };
-
-/**
- * Generates a selector string for the element (for debugging).
- */
-function getDebugSelector($el: JQuery): string {
-  const el = $el[0];
-  if (!el) return 'unknown';
-  if (el.id) return `#${el.id}`;
-  if (el.className) {
-    const classes = String(el.className).split(' ').filter(Boolean).join('.');
-    return `${el.tagName.toLowerCase()}.${classes}`;
-  }
-  return el.tagName.toLowerCase();
-}
 
 /**
  * Visual highlight - flashes a red border.

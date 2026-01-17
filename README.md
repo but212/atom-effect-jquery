@@ -11,8 +11,11 @@
 
 - **Fine-grained Reactivity:** Powered by `@but212/atom-effect`.
 - **Two-way Data Binding:** Seamless synchronization for inputs (`val`, `checked`).
-- **Auto-Cleanup:** Effects are automatically disposed when elements are removed from the DOM (via MutionObserver).
-- **Optimized List Rendering:** `atomList` for efficient array rendering.
+- **Auto-Cleanup:** Effects are automatically disposed when elements are removed from the DOM (via MutationObserver).
+- **Reparenting-Safe:** DOM elements moved via `.appendTo()`, `.prependTo()`, etc. preserve their reactivity (critical for drag-and-drop libraries like Sortable).
+- **Async Removal Handling:** `atomList` properly handles async removal animations without ghost items.
+- **Smart Input Formatting:** `atomVal` allows intermediate input (e.g., `1.`, `00`) during typing; formatting is applied on blur.
+- **Optimized List Rendering:** `atomList` for efficient array rendering with LIS-based keyed diffing.
 - **Debug Mode:** Visual highlighting of DOM updates to trace reactivity.
 - **jQuery Integration:** Batching support for standard jQuery events.
 
@@ -32,7 +35,7 @@ pnpm add atom-effect-jquery jquery @but212/atom-effect
 <!-- Load jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Load atom-effect-jquery -->
-<script src="https://cdn.jsdelivr.net/npm/atom-effect-jquery@0.5.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/atom-effect-jquery@0.6.1"></script>
 ```
 
 ## Basic Usage

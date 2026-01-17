@@ -142,6 +142,10 @@ export function enableAutoCleanup(root: Element = document.body): void {
           return; 
         }
 
+        if (node.isConnected) {
+          return;
+        }
+
         // Use nodeType === 1 check instead of instanceof Element to avoid
         // ReferenceError during test teardown where Element might be undefined
         if (node.nodeType === 1) {

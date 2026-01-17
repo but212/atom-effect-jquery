@@ -33,16 +33,21 @@ export function getValue<T>(source: ReactiveValue<T>): T {
 
 /**
  * Generates a CSS selector string for a DOM element.
+ * Accepts both raw Element and JQuery objects for flexibility.
  * This is primarily used for debugging and logging purposes to identify elements.
  * 
- * @param el - The DOM element to generate a selector for.
+ * @param el - The DOM element or JQuery object to generate a selector for.
  * @returns A string representing the element's ID, classes, or tag name.
  */
-export function getSelector(el: Element): string {
-  if (el.id) return `#${el.id}`;
-  if (el.className) {
-    const classes = String(el.className).split(/\s+/).filter(Boolean).join('.');
-    return classes ? `${el.tagName.toLowerCase()}.${classes}` : el.tagName.toLowerCase();
+export function getSelector(el: Element | JQuery): string {
+  // Handle JQuery objects by extracting the first DOM element
+  const domEl = (el as JQuery).jquery ? (el as JQuery)[0] : el as Element;
+  if (!domEl) return 'unknown';
+  
+  if (domEl.id) return `#${domEl.id}`;
+  if (domEl.className) {
+    const classes = String(domEl.className).split(/\s+/).filter(Boolean).join('.');
+    return classes ? `${domEl.tagName.toLowerCase()}.${classes}` : domEl.tagName.toLowerCase();
   }
-  return el.tagName.toLowerCase();
+  return domEl.tagName.toLowerCase();
 }

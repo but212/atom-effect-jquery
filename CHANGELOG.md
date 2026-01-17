@@ -1,8 +1,41 @@
 # Changelog
 
+## [0.6.1]
+
+### Fixed
+
+- **atomBind val Feature Parity**: `atomBind({ val })` now has full feature parity with standalone `$.fn.atomVal`.
+  - Added focus tracking to prevent DOM updates from interrupting user input (fixes decimal input issue like `1.`)
+  - Added support for `parse`, `format`, `debounce`, and `event` options via tuple syntax: `val: [atom, options]`
+  - Added blur formatting to ensure clean display when input loses focus
+
+## [0.6.0]
+
+### Fixed - 0.6.0
+
+- **DOM Reparenting Cleanup Issue**: Added `isConnected` check in `MutationObserver` to prevent cleanup of nodes that have been reparented (moved) via jQuery's `.appendTo()`, `.prependTo()`, etc. This is critical for drag-and-drop (Sortable) libraries.
+- **Async Removal Ghost Item Bug**: Added `removingKeys` Set in `atomList` to track keys being removed asynchronously. Prevents duplicate item creation when the same key is re-added during async removal animation (e.g., fade-out).
+- **Decimal Input Issue**: Added focus-aware formatting in `atomVal` to allow intermediate input like `1.` or `00` during typing. Formatting is enforced on blur.
+
+### Changed - 0.6.0
+
+- **Input Binding State Management**
+  - Replaced scattered boolean flags in `atomVal` with unified `InputBindingState` interface
+  - Explicit phase transitions: `idle` → `composing` → `syncing-to-atom` → `syncing-to-dom`
+
+- **atomBind Modularization**
+  - Split monolithic 230-line function into focused handlers
+  - New handlers: `bindText`, `bindHtml`, `bindClass`, `bindCss`, `bindAttr`, `bindProp`, `bindShow`, `bindHide`, `bindVal`, `bindChecked`, `bindEvents`
+  - Introduced `BindingContext` type for shared state
+
+- **Code Cleanup**
+  - Unified duplicate `getSelector` functions (utils.ts + debug.ts)
+  - Added `CssValue`, `CssBindings` named types
+  - Reduced non-null assertions in `list.ts` with proper type guards
+
 ## [0.5.0]
 
-### Changed
+### Changed - 0.5.0
 
 - **Version Bump**: Bumped version to 0.5.0
 

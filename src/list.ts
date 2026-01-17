@@ -95,6 +95,10 @@ $.fn.atomList = function<T>(
     let oldKeys: (string | number)[] = [];
     let $emptyEl: JQuery | null = null;
 
+    // Track keys currently being removed (async animation etc.)
+    // This prevents duplicate items when the same key is re-added during removal
+    const removingKeys = new Set<string | number>();
+
     const fx = effect(() => {
       const items = source.value;
       const newKeys: (string | number)[] = [];
@@ -117,7 +121,8 @@ $.fn.atomList = function<T>(
         }
         for (const [, entry] of itemMap) {
           entry.$el.remove();
-          registry.cleanup(entry.$el[0]!);
+          const el = entry.$el[0];
+          if (el) registry.cleanup(el);
         }
         itemMap.clear();
         oldKeys = [];
@@ -130,13 +135,19 @@ $.fn.atomList = function<T>(
       // 3. Remove vanished items
       for (const [k, entry] of itemMap) {
         if (!newKeySet.has(k)) {
+          // Skip if already being removed (prevents duplicate removal attempts)
+          if (removingKeys.has(k)) continue;
+
           const doRemove = () => {
              entry.$el.remove();
-             registry.cleanup(entry.$el[0]!);
+             const el = entry.$el[0];
+             if (el) registry.cleanup(el);
+             removingKeys.delete(k); // Clear from tracking when removal completes
              debug.log('list', `${containerSelector} removed item:`, k);
           };
 
           itemMap.delete(k); // Remove from map immediately to avoid interference
+          removingKeys.add(k); // Mark as being removed
           
           if (onRemove) {
             Promise.resolve(onRemove(entry.$el)).then(doRemove);
@@ -152,7 +163,7 @@ $.fn.atomList = function<T>(
       oldKeys.forEach((k, i) => oldIndexMap.set(k, i));
 
       // Construct array of old indices for the new items
-      const newIndices = newKeys.map(k => oldIndexMap.has(k) ? oldIndexMap.get(k)! : -1);
+      const newIndices = newKeys.map(k => oldIndexMap.get(k) ?? -1);
       
       // Get indices of items in the new list that form the LIS (stable candidates)
       const lis = getLIS(newIndices);
@@ -168,9 +179,12 @@ $.fn.atomList = function<T>(
 
         if (itemMap.has(key)) {
           // Update Existing
-          const entry = itemMap.get(key)!;
+          const entry = itemMap.get(key);
+          if (!entry) continue; // Type guard
+          
           entry.item = item;
-          const el = entry.$el[0]!;
+          const el = entry.$el[0];
+          if (!el) continue; // Type guard
             
           if (options.update) {
             options.update(entry.$el, item, i);
@@ -212,7 +226,8 @@ $.fn.atomList = function<T>(
           debug.log('list', `${containerSelector} added item:`, key);
           
           // Use first element of new set as anchor
-          nextNode = $el[0]!;
+          const newEl = $el[0];
+          if (newEl) nextNode = newEl;
         }
       }
 
