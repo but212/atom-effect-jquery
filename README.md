@@ -1,5 +1,33 @@
 # atom-effect-jquery
 
+- **deprecated**: This project is deprecated. Please use [@but212/atom-effect-jquery](https://github.com/but212/atom-effect) instead.
+
+## Migration
+
+```ts
+import $ from 'jquery';
+import 'atom-effect-jquery';
+
+// to
+
+import $ from 'jquery';
+import '@but212/atom-effect-jquery';
+```
+
+```bash
+# from
+npm i atom-effect-jquery
+# to
+npm i @but212/atom-effect-jquery
+```
+
+```html
+<!-- from -->
+<script src="https://cdn.jsdelivr.net/npm/atom-effect-jquery"></script>
+<!-- to -->
+<script src="https://cdn.jsdelivr.net/npm/@but212/atom-effect-jquery"></script>
+```
+
 [![npm version](https://img.shields.io/npm/v/atom-effect-jquery.svg)](https://www.npmjs.com/package/atom-effect-jquery)
 [![License](https://img.shields.io/npm/l/atom-effect-jquery.svg)](https://github.com/but212/atom-effect-jquery/blob/main/LICENSE)
 

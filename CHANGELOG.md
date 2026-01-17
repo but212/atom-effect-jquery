@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.2]
+
+### Changed
+
+- **Deprecated**: This project is deprecated. Please use [@but212/atom-effect-jquery](https://github.com/but212/atom-effect) instead.
+
 ## [0.6.1]
 
 ### Fixed
