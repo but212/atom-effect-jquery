@@ -21,13 +21,24 @@ export interface AtomOptions extends BaseAtomOptions {
 export type ReactiveValue<T> = T | ReadonlyAtom<T> | ComputedAtom<T>;
 
 /**
+ * CSS value: either a direct reactive value or a tuple of [source, unit].
+ * Named type provides clear bone structure for CSS binding configurations.
+ */
+export type CssValue = ReactiveValue<string | number> | [source: ReactiveValue<number>, unit: string];
+
+/**
+ * CSS bindings map property names to CSS values.
+ */
+export type CssBindings = Record<string, CssValue>;
+
+/**
  * Configuration options for `atomBind`.
  */
 export interface BindingOptions<T> {
   text?: ReactiveValue<T>;
   html?: ReactiveValue<string>;
   class?: Record<string, ReactiveValue<boolean>>;
-  css?: Record<string, ReactiveValue<string | number> | [ReactiveValue<number>, string]>;
+  css?: CssBindings;
   attr?: Record<string, ReactiveValue<string | boolean | null>>;
   prop?: Record<string, ReactiveValue<T>>;
   show?: ReactiveValue<boolean>;
@@ -58,6 +69,27 @@ export interface ValOptions<T> {
   event?: string;
   parse?: (v: string) => T;
   format?: (v: T) => string;
+}
+
+/**
+ * State context for two-way input bindings.
+ * Consolidates scattered state flags into a single, traceable object.
+ * This is the "bone structure" for input binding lifecycle management.
+ */
+export interface InputBindingState {
+  /** Timeout ID for debounced updates */
+  timeoutId: number | null;
+  /** Current binding phase - makes state transitions explicit and traceable */
+  phase: 'idle' | 'composing' | 'syncing-to-atom' | 'syncing-to-dom';
+  /** Whether the input currently has focus */
+  hasFocus: boolean;
+}
+
+/**
+ * Creates a fresh InputBindingState with default values.
+ */
+export function createInputBindingState(): InputBindingState {
+  return { timeoutId: null, phase: 'idle', hasFocus: false };
 }
 
 /**

@@ -4,6 +4,7 @@ import { registry } from './registry';
 import { debug } from './debug';
 import { isReactive, getValue } from './utils';
 import type { ReactiveValue, WritableAtom, ValOptions } from './types';
+import { createInputBindingState, type InputBindingState } from './types';
 
 /**
  * Updates element text content.
@@ -207,8 +208,8 @@ $.fn.atomHide = function(condition: ReactiveValue<boolean>): JQuery {
 
 /**
  * Two-way binding for input values.
+ * Uses InputBindingState for explicit lifecycle management.
  * Supports IME (Input Method Editor) for CJK languages.
- * Prevents infinite loops between DOM events and Atom updates.
  */
 $.fn.atomVal = function<T>(
   atom: WritableAtom<T>,
@@ -224,28 +225,26 @@ $.fn.atomVal = function<T>(
   return this.each(function() {
     const $el = $(this);
     
-    let timeoutId: number | null = null;
-    let isUpdatingFromAtom = false;  // Prevents infinite loop
-    let isComposing = false;         // IME composition state
-    let isUpdating = false;          // Update lock flag
-    let hasFocus = false;            // Track focus state for smart formatting
+    // Unified state context - explicit lifecycle phases
+    const state: InputBindingState = createInputBindingState();
 
+    // Phase transition: idle → composing
     const onCompositionStart = () => {
-      isComposing = true;
+      state.phase = 'composing';
     };
 
+    // Phase transition: composing → idle, then sync
     const onCompositionEnd = () => {
-      isComposing = false;
-      // Update Atom on composition end
-      updateAtom();
+      state.phase = 'idle';
+      syncAtomFromDom();
     };
 
     $el.on('compositionstart', onCompositionStart);
     $el.on('compositionend', onCompositionEnd);
 
-    const onFocus = () => { hasFocus = true; };
+    const onFocus = () => { state.hasFocus = true; };
     const onBlur = () => {
-      hasFocus = false;
+      state.hasFocus = false;
       // Force formatting on blur to ensure clean display
       const formatted = format(atom.value);
       if ($el.val() !== formatted) {
@@ -256,46 +255,49 @@ $.fn.atomVal = function<T>(
     $el.on('focus', onFocus);
     $el.on('blur', onBlur);
 
-    const updateAtom = () => {
-      if (isUpdatingFromAtom || isUpdating) return;
+    // Core sync: DOM → Atom
+    const syncAtomFromDom = () => {
+      // Guard: only sync when idle
+      if (state.phase !== 'idle') return;
       
+      state.phase = 'syncing-to-atom';
       batch(() => {
         atom.value = parse($el.val() as string);
       });
+      state.phase = 'idle';
     };
 
     const onInput = () => {
-      // Ignore if composing or currently updating
-      if (isComposing || isUpdating) return;
-      if (isUpdatingFromAtom) return;
+      // Guard: skip during composition or sync phases
+      if (state.phase !== 'idle') return;
 
       if (debounceMs) {
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(updateAtom, debounceMs);
+        if (state.timeoutId) clearTimeout(state.timeoutId);
+        state.timeoutId = window.setTimeout(syncAtomFromDom, debounceMs);
       } else {
-        updateAtom();
+        syncAtomFromDom();
       }
     };
 
     $el.on(event, onInput);
     $el.on('change', onInput);
     
+    // Core sync: Atom → DOM
     const fx = effect(() => {
       const formatted = format(atom.value);
       const currentVal = $el.val() as string;
       
       // Update only if value differs
       if (currentVal !== formatted) {
-        if (hasFocus && parse(currentVal) === atom.value) {
-          return; // Don't interrupt user input
+        // Don't interrupt user input if parsed value matches
+        if (state.hasFocus && parse(currentVal) === atom.value) {
+          return;
         }
         
-        isUpdatingFromAtom = true;
-        isUpdating = true; // Lock
+        state.phase = 'syncing-to-dom';
         $el.val(formatted);
         debug.domUpdated($el, 'val', formatted);
-        isUpdating = false; // Unlock
-        isUpdatingFromAtom = false;
+        state.phase = 'idle';
       }
     });
 
@@ -308,7 +310,7 @@ $.fn.atomVal = function<T>(
       $el.off('compositionend', onCompositionEnd);
       $el.off('focus', onFocus);
       $el.off('blur', onBlur);
-      if (timeoutId) clearTimeout(timeoutId);
+      if (state.timeoutId) clearTimeout(state.timeoutId);
     });
   });
 };

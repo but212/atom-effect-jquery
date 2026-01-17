@@ -8,9 +8,25 @@
 - **Async Removal Ghost Item Bug**: Added `removingKeys` Set in `atomList` to track keys being removed asynchronously. Prevents duplicate item creation when the same key is re-added during async removal animation (e.g., fade-out).
 - **Decimal Input Issue**: Added focus-aware formatting in `atomVal` to allow intermediate input like `1.` or `00` during typing. Formatting is enforced on blur.
 
+### Changed
+
+- **Input Binding State Management**
+  - Replaced scattered boolean flags in `atomVal` with unified `InputBindingState` interface
+  - Explicit phase transitions: `idle` → `composing` → `syncing-to-atom` → `syncing-to-dom`
+
+- **atomBind Modularization**
+  - Split monolithic 230-line function into focused handlers
+  - New handlers: `bindText`, `bindHtml`, `bindClass`, `bindCss`, `bindAttr`, `bindProp`, `bindShow`, `bindHide`, `bindVal`, `bindChecked`, `bindEvents`
+  - Introduced `BindingContext` type for shared state
+
+- **Code Cleanup**
+  - Unified duplicate `getSelector` functions (utils.ts + debug.ts)
+  - Added `CssValue`, `CssBindings` named types
+  - Reduced non-null assertions in `list.ts` with proper type guards
+
 ## [0.5.0]
 
-### Changed
+### Changed - 0.5.0
 
 - **Version Bump**: Bumped version to 0.5.0
 

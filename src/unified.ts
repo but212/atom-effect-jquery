@@ -3,227 +3,271 @@ import { effect, batch } from '@but212/atom-effect';
 import { registry } from './registry';
 import { debug } from './debug';
 import { isReactive, getValue } from './utils';
-import type { BindingOptions } from './types';
+import type { BindingOptions, ReactiveValue, CssValue, WritableAtom } from './types';
+import { createInputBindingState } from './types';
+
+// ============================================================================
+// Binding Handler Types
+// ============================================================================
+
+/**
+ * Effect factory function - returns effects to register, or empty array for static bindings.
+ */
+type EffectFactory = () => void;
+
+/**
+ * Context passed to binding handlers for cleanup registration.
+ */
+interface BindingContext {
+  readonly $el: JQuery;
+  readonly el: HTMLElement;
+  readonly effects: EffectFactory[];
+  readonly trackCleanup: (fn: () => void) => void;
+}
+
+// ============================================================================
+// One-Way Binding Handlers (Atom → DOM)
+// ============================================================================
+
+function bindText<T>(ctx: BindingContext, value: ReactiveValue<T>): void {
+  if (isReactive(value)) {
+    ctx.effects.push(() => {
+      const text = String(getValue(value) ?? '');
+      ctx.$el.text(text);
+      debug.domUpdated(ctx.$el, 'text', text);
+    });
+  } else {
+    ctx.$el.text(String(value ?? ''));
+  }
+}
+
+function bindHtml(ctx: BindingContext, value: ReactiveValue<string>): void {
+  if (isReactive(value)) {
+    ctx.effects.push(() => {
+      const html = String(getValue(value) ?? '');
+      ctx.$el.html(html);
+      debug.domUpdated(ctx.$el, 'html', html);
+    });
+  } else {
+    ctx.$el.html(String(value ?? ''));
+  }
+}
+
+function bindClass(ctx: BindingContext, classMap: Record<string, ReactiveValue<boolean>>): void {
+  for (const [className, condition] of Object.entries(classMap)) {
+    if (isReactive(condition)) {
+      ctx.effects.push(() => {
+        const value = Boolean(getValue(condition));
+        ctx.$el.toggleClass(className, value);
+        debug.domUpdated(ctx.$el, `class.${className}`, value);
+      });
+    } else {
+      ctx.$el.toggleClass(className, Boolean(condition));
+    }
+  }
+}
+
+function bindCss(ctx: BindingContext, cssMap: Record<string, CssValue>): void {
+  for (const [prop, value] of Object.entries(cssMap)) {
+    if (Array.isArray(value)) {
+      const [source, unit] = value;
+      if (isReactive(source)) {
+        ctx.effects.push(() => {
+          const cssValue = `${getValue(source)}${unit}`;
+          ctx.$el.css(prop, cssValue);
+          debug.domUpdated(ctx.$el, `css.${prop}`, cssValue);
+        });
+      } else {
+        ctx.$el.css(prop, `${source}${unit}`);
+      }
+    } else if (isReactive(value)) {
+      ctx.effects.push(() => {
+        const cssValue = getValue(value) as string | number;
+        ctx.$el.css(prop, cssValue);
+        debug.domUpdated(ctx.$el, `css.${prop}`, cssValue);
+      });
+    } else {
+      ctx.$el.css(prop, value as string | number);
+    }
+  }
+}
+
+function bindAttr(ctx: BindingContext, attrMap: Record<string, ReactiveValue<string | boolean | null>>): void {
+  for (const [name, value] of Object.entries(attrMap)) {
+    const applyAttr = (v: string | boolean | null | undefined) => {
+      if (v === null || v === undefined || v === false) {
+        ctx.$el.removeAttr(name);
+      } else if (v === true) {
+        ctx.$el.attr(name, name);
+      } else {
+        ctx.$el.attr(name, String(v));
+      }
+      debug.domUpdated(ctx.$el, `attr.${name}`, v);
+    };
+
+    if (isReactive(value)) {
+      ctx.effects.push(() => applyAttr(getValue(value)));
+    } else {
+      applyAttr(value);
+    }
+  }
+}
+
+function bindProp(ctx: BindingContext, propMap: Record<string, ReactiveValue<unknown>>): void {
+  for (const [name, value] of Object.entries(propMap)) {
+    if (isReactive(value)) {
+      ctx.effects.push(() => {
+        const propValue = getValue(value);
+        ctx.$el.prop(name, propValue as string | number | boolean | null | undefined);
+        debug.domUpdated(ctx.$el, `prop.${name}`, propValue);
+      });
+    } else {
+      ctx.$el.prop(name, value as string | number | boolean | null | undefined);
+    }
+  }
+}
+
+function bindShow(ctx: BindingContext, condition: ReactiveValue<boolean>): void {
+  if (isReactive(condition)) {
+    ctx.effects.push(() => {
+      const value = Boolean(getValue(condition));
+      ctx.$el.toggle(value);
+      debug.domUpdated(ctx.$el, 'show', value);
+    });
+  } else {
+    ctx.$el.toggle(Boolean(condition));
+  }
+}
+
+function bindHide(ctx: BindingContext, condition: ReactiveValue<boolean>): void {
+  if (isReactive(condition)) {
+    ctx.effects.push(() => {
+      const value = !getValue(condition);
+      ctx.$el.toggle(value);
+      debug.domUpdated(ctx.$el, 'hide', !value);
+    });
+  } else {
+    ctx.$el.toggle(!condition);
+  }
+}
+
+// ============================================================================
+// Two-Way Binding Handlers (Atom ↔ DOM)
+// ============================================================================
+
+function bindVal<T>(ctx: BindingContext, atom: WritableAtom<T>): void {
+  const state = createInputBindingState();
+
+  // IME composition support
+  const onCompositionStart = () => { state.phase = 'composing'; };
+  const onCompositionEnd = () => {
+    state.phase = 'idle';
+    if (state.phase === 'idle') {
+      batch(() => { atom.value = ctx.$el.val() as unknown as T; });
+    }
+  };
+
+  ctx.$el.on('compositionstart', onCompositionStart);
+  ctx.$el.on('compositionend', onCompositionEnd);
+
+  // DOM → Atom
+  const handler = () => {
+    if (state.phase !== 'idle') return;
+    batch(() => { atom.value = ctx.$el.val() as unknown as T; });
+  };
+  
+  ctx.$el.on('input change', handler);
+  
+  ctx.trackCleanup(() => {
+    ctx.$el.off('input change', handler);
+    ctx.$el.off('compositionstart', onCompositionStart);
+    ctx.$el.off('compositionend', onCompositionEnd);
+  });
+
+  // Atom → DOM
+  ctx.effects.push(() => {
+    const v = String(atom.value ?? '');
+    if (ctx.$el.val() !== v) {
+      state.phase = 'syncing-to-dom';
+      ctx.$el.val(v);
+      debug.domUpdated(ctx.$el, 'val', v);
+      state.phase = 'idle';
+    }
+  });
+}
+
+function bindChecked(ctx: BindingContext, atom: WritableAtom<boolean>): void {
+  const state = createInputBindingState();
+
+  // DOM → Atom
+  const handler = () => {
+    if (state.phase !== 'idle') return;
+    batch(() => { atom.value = ctx.$el.prop('checked'); });
+  };
+  
+  ctx.$el.on('change', handler);
+  ctx.trackCleanup(() => ctx.$el.off('change', handler));
+
+  // Atom → DOM
+  ctx.effects.push(() => {
+    state.phase = 'syncing-to-dom';
+    ctx.$el.prop('checked', atom.value);
+    debug.domUpdated(ctx.$el, 'checked', atom.value);
+    state.phase = 'idle';
+  });
+}
+
+// ============================================================================
+// Event Binding Handler
+// ============================================================================
+
+function bindEvents(ctx: BindingContext, eventMap: Record<string, (e: JQuery.Event) => void>): void {
+  for (const [eventName, handler] of Object.entries(eventMap)) {
+    const wrapped = function(this: HTMLElement, e: JQuery.Event) {
+      batch(() => handler.call(this, e));
+    };
+    ctx.$el.on(eventName, wrapped);
+    ctx.trackCleanup(() => ctx.$el.off(eventName, wrapped));
+  }
+}
+
+// ============================================================================
+// Main Entry Point
+// ============================================================================
 
 /**
  * Extends jQuery with atom-based data binding capabilities.
- * This plugin allows synchronizing DOM element states (text, html, classes, styles, etc.)
- * with reactive atoms or static values. It also supports two-way binding for form inputs
- * and automatic cleanup of effects and event listeners.
- *
- * @param options - Configuration object defining the bindings.
- * @returns The jQuery object for chainability.
+ * 
+ * This plugin synchronizes DOM element states (text, html, classes, styles, etc.)
+ * with reactive atoms. Handlers are modular and focused for maintainability.
  */
 $.fn.atomBind = function<T extends string | number | boolean | null | undefined>(options: BindingOptions<T>): JQuery {
   return this.each(function() {
     const $el = $(this);
-    const effects: (() => void)[] = [];
+    const effects: EffectFactory[] = [];
 
-    // Text
-    if (options.text !== undefined) {
-      if (isReactive(options.text)) {
-        effects.push(() => {
-          const text = String(getValue(options.text) ?? '');
-          $el.text(text);
-          debug.domUpdated($el, 'text', text);
-        });
-      } else {
-        $el.text(String(options.text ?? ''));
-      }
-    }
+    // Build binding context
+    const ctx: BindingContext = {
+      $el,
+      el: this,
+      effects,
+      trackCleanup: (fn) => registry.trackCleanup(this, fn),
+    };
 
-    // HTML
-    if (options.html !== undefined) {
-      if (isReactive(options.html)) {
-        effects.push(() => {
-          const html = String(getValue(options.html) ?? '');
-          $el.html(html);
-          debug.domUpdated($el, 'html', html);
-        });
-      } else {
-        $el.html(String(options.html ?? ''));
-      }
-    }
+    // Apply bindings through focused handlers
+    if (options.text !== undefined) bindText(ctx, options.text);
+    if (options.html !== undefined) bindHtml(ctx, options.html);
+    if (options.class) bindClass(ctx, options.class);
+    if (options.css) bindCss(ctx, options.css);
+    if (options.attr) bindAttr(ctx, options.attr);
+    if (options.prop) bindProp(ctx, options.prop);
+    if (options.show !== undefined) bindShow(ctx, options.show);
+    if (options.hide !== undefined) bindHide(ctx, options.hide);
+    if (options.val !== undefined) bindVal(ctx, options.val);
+    if (options.checked !== undefined) bindChecked(ctx, options.checked);
+    if (options.on) bindEvents(ctx, options.on);
 
-    // Class
-    if (options.class) {
-      for (const [className, condition] of Object.entries(options.class)) {
-        if (isReactive(condition)) {
-          effects.push(() => {
-            const value = Boolean(getValue(condition));
-            $el.toggleClass(className, value);
-            debug.domUpdated($el, `class.${className}`, value);
-          });
-        } else {
-          $el.toggleClass(className, Boolean(condition));
-        }
-      }
-    }
-
-    // CSS
-    if (options.css) {
-      for (const [prop, value] of Object.entries(options.css)) {
-        if (Array.isArray(value)) {
-          const [source, unit] = value;
-          if (isReactive(source)) {
-            effects.push(() => {
-              const cssValue = `${getValue(source)}${unit}`;
-              $el.css(prop, cssValue);
-              debug.domUpdated($el, `css.${prop}`, cssValue);
-            });
-          } else {
-            $el.css(prop, `${source}${unit}`);
-          }
-        } else if (isReactive(value)) {
-          effects.push(() => {
-            const cssValue = getValue(value) as string | number;
-            $el.css(prop, cssValue);
-            debug.domUpdated($el, `css.${prop}`, cssValue);
-          });
-        } else {
-          $el.css(prop, value as string | number);
-        }
-      }
-    }
-
-    // Attributes
-    if (options.attr) {
-      for (const [name, value] of Object.entries(options.attr)) {
-        const applyAttr = (v: string | boolean | null | undefined) => {
-          if (v === null || v === undefined || v === false) {
-            $el.removeAttr(name);
-          } else if (v === true) {
-            $el.attr(name, name);
-          } else {
-            $el.attr(name, String(v));
-          }
-          debug.domUpdated($el, `attr.${name}`, v);
-        };
-
-        if (isReactive(value)) {
-          effects.push(() => applyAttr(getValue(value)));
-        } else {
-          applyAttr(value);
-        }
-      }
-    }
-
-    // Properties
-    if (options.prop) {
-      for (const [name, value] of Object.entries(options.prop)) {
-        if (isReactive(value)) {
-          effects.push(() => {
-            const propValue = getValue(value);
-            $el.prop(name, propValue);
-            debug.domUpdated($el, `prop.${name}`, propValue);
-          });
-        } else {
-          $el.prop(name, value);
-        }
-      }
-    }
-
-    // Show
-    if (options.show !== undefined) {
-      if (isReactive(options.show)) {
-        effects.push(() => {
-          const value = Boolean(getValue(options.show));
-          $el.toggle(value);
-          debug.domUpdated($el, 'show', value);
-        });
-      } else {
-        $el.toggle(Boolean(options.show));
-      }
-    }
-
-    // Hide
-    if (options.hide !== undefined) {
-      if (isReactive(options.hide)) {
-        effects.push(() => {
-          const value = !getValue(options.hide);
-          $el.toggle(value);
-          debug.domUpdated($el, 'hide', !value);
-        });
-      } else {
-        $el.toggle(!options.hide);
-      }
-    }
-
-    // Val (Two-way) - Supports IME
-    if (options.val !== undefined) {
-      const atom = options.val;
-      let isUpdatingFromAtom = false;
-      let isComposing = false;
-
-      // IME Events
-      const onCompositionStart = () => { isComposing = true; };
-      const onCompositionEnd = () => {
-        isComposing = false;
-        if (!isUpdatingFromAtom) {
-          batch(() => { atom.value = $el.val() as unknown as T; });
-        }
-      };
-
-      $el.on('compositionstart', onCompositionStart);
-      $el.on('compositionend', onCompositionEnd);
-
-      const handler = () => {
-        if (isComposing || isUpdatingFromAtom) return;
-        batch(() => { atom.value = $el.val() as unknown as T; });
-      };
-      
-      $el.on('input change', handler);
-      
-      registry.trackCleanup(this, () => {
-        $el.off('input change', handler);
-        $el.off('compositionstart', onCompositionStart);
-        $el.off('compositionend', onCompositionEnd);
-      });
-
-      effects.push(() => {
-        const v = String(atom.value ?? '');
-        if ($el.val() !== v) {
-          isUpdatingFromAtom = true;
-          $el.val(v);
-          debug.domUpdated($el, 'val', v);
-          isUpdatingFromAtom = false;
-        }
-      });
-    }
-
-    // Checked (Two-way)
-    if (options.checked !== undefined) {
-      const atom = options.checked;
-      let isUpdatingFromAtom = false;
-
-      const handler = () => {
-        if (isUpdatingFromAtom) return;
-        batch(() => { atom.value = $el.prop('checked'); });
-      };
-      
-      $el.on('change', handler);
-      registry.trackCleanup(this, () => $el.off('change', handler));
-
-      effects.push(() => {
-        isUpdatingFromAtom = true;
-        $el.prop('checked', atom.value);
-        debug.domUpdated($el, 'checked', atom.value);
-        isUpdatingFromAtom = false;
-      });
-    }
-
-    // Event Handlers
-    if (options.on) {
-      for (const [eventName, handler] of Object.entries(options.on)) {
-        const wrapped = function(this: HTMLElement, e: JQuery.Event) {
-          batch(() => handler.call(this, e));
-        };
-        $el.on(eventName, wrapped);
-        registry.trackCleanup(this, () => $el.off(eventName, wrapped));
-      }
-    }
-
-    // Register Effects
+    // Register all collected effects
     effects.forEach(fn => {
       const fx = effect(fn);
       registry.trackEffect(this, fx);
