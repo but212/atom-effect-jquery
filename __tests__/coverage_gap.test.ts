@@ -5,7 +5,6 @@ import { debug } from '../src/debug';
 import { getValue, getSelector } from '../src/utils';
 
 import { registry, disableAutoCleanup, enableAutoCleanup } from '../src/registry';
-// @ts-expect-error
 import { enablejQueryBatching } from '../src/jquery-patch';
 import type { EffectObject } from '../src/types';
 
@@ -352,7 +351,11 @@ describe('Coverage Gap Tests', () => {
        $input.atomBind({ val });
        await wait();
        $input.atomUnbind();
-       expect(offSpy).toHaveBeenCalledWith('input change', expect.any(Function));
+       // Now binds events separately for flexibility, so check for both
+       expect(offSpy).toHaveBeenCalledWith('input', expect.any(Function));
+       expect(offSpy).toHaveBeenCalledWith('change', expect.any(Function));
+       expect(offSpy).toHaveBeenCalledWith('focus', expect.any(Function));
+       expect(offSpy).toHaveBeenCalledWith('blur', expect.any(Function));
        $input.remove();
        offSpy.mockRestore();
     });

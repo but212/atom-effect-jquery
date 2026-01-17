@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1]
+
+### Fixed
+
+- **atomBind val Feature Parity**: `atomBind({ val })` now has full feature parity with standalone `$.fn.atomVal`.
+  - Added focus tracking to prevent DOM updates from interrupting user input (fixes decimal input issue like `1.`)
+  - Added support for `parse`, `format`, `debounce`, and `event` options via tuple syntax: `val: [atom, options]`
+  - Added blur formatting to ensure clean display when input loses focus
+
 ## [0.6.0]
 
 ### Fixed

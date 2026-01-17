@@ -43,7 +43,7 @@ export interface BindingOptions<T> {
   prop?: Record<string, ReactiveValue<T>>;
   show?: ReactiveValue<boolean>;
   hide?: ReactiveValue<boolean>;
-  val?: WritableAtom<T>;
+  val?: WritableAtom<T> | [atom: WritableAtom<T>, options: ValOptions<T>];
   checked?: WritableAtom<boolean>;
   on?: Record<string, (e: JQuery.Event) => void>;
 }

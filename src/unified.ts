@@ -3,7 +3,7 @@ import { effect, batch } from '@but212/atom-effect';
 import { registry } from './registry';
 import { debug } from './debug';
 import { isReactive, getValue } from './utils';
-import type { BindingOptions, ReactiveValue, CssValue, WritableAtom } from './types';
+import type { BindingOptions, ReactiveValue, CssValue, WritableAtom, ValOptions } from './types';
 import { createInputBindingState } from './types';
 
 // ============================================================================
@@ -151,46 +151,105 @@ function bindHide(ctx: BindingContext, condition: ReactiveValue<boolean>): void 
   }
 }
 
-// ============================================================================
-// Two-Way Binding Handlers (Atom ↔ DOM)
-// ============================================================================
+/**
+ * Two-way value binding with full feature parity to $.fn.atomVal.
+ * Supports parse/format options, debouncing, IME composition, and focus-aware updates.
+ */
+function bindVal<T>(
+  ctx: BindingContext, 
+  valConfig: WritableAtom<T> | [atom: WritableAtom<T>, options: ValOptions<T>]
+): void {
+  // Parse config - can be just an atom or [atom, options] tuple
+  const atom = Array.isArray(valConfig) ? valConfig[0] : valConfig;
+  const options = Array.isArray(valConfig) ? valConfig[1] : {};
+  
+  const {
+    debounce: debounceMs,
+    event = 'input',
+    parse = (v: string) => v as unknown as T,
+    format = (v: T) => String(v ?? '')
+  } = options;
 
-function bindVal<T>(ctx: BindingContext, atom: WritableAtom<T>): void {
   const state = createInputBindingState();
 
-  // IME composition support
-  const onCompositionStart = () => { state.phase = 'composing'; };
+  // IME composition support (CJK input)
+  const onCompositionStart = () => {
+    state.phase = 'composing';
+  };
+
   const onCompositionEnd = () => {
     state.phase = 'idle';
-    if (state.phase === 'idle') {
-      batch(() => { atom.value = ctx.$el.val() as unknown as T; });
-    }
+    syncAtomFromDom();
   };
 
   ctx.$el.on('compositionstart', onCompositionStart);
   ctx.$el.on('compositionend', onCompositionEnd);
 
-  // DOM → Atom
-  const handler = () => {
-    if (state.phase !== 'idle') return;
-    batch(() => { atom.value = ctx.$el.val() as unknown as T; });
+  // Focus tracking for smart formatting
+  const onFocus = () => { state.hasFocus = true; };
+  const onBlur = () => {
+    state.hasFocus = false;
+    // Force formatting on blur to ensure clean display
+    const formatted = format(atom.value);
+    if (ctx.$el.val() !== formatted) {
+      ctx.$el.val(formatted);
+    }
   };
-  
-  ctx.$el.on('input change', handler);
+
+  ctx.$el.on('focus', onFocus);
+  ctx.$el.on('blur', onBlur);
+
+  // Core sync: DOM → Atom
+  const syncAtomFromDom = () => {
+    if (state.phase !== 'idle') return;
+    
+    state.phase = 'syncing-to-atom';
+    batch(() => {
+      atom.value = parse(ctx.$el.val() as string);
+    });
+    state.phase = 'idle';
+  };
+
+  // Input handler with optional debounce
+  const onInput = () => {
+    if (state.phase !== 'idle') return;
+
+    if (debounceMs) {
+      if (state.timeoutId) clearTimeout(state.timeoutId);
+      state.timeoutId = window.setTimeout(syncAtomFromDom, debounceMs);
+    } else {
+      syncAtomFromDom();
+    }
+  };
+
+  ctx.$el.on(event, onInput);
+  ctx.$el.on('change', onInput);
   
   ctx.trackCleanup(() => {
-    ctx.$el.off('input change', handler);
+    ctx.$el.off(event, onInput);
+    ctx.$el.off('change', onInput);
     ctx.$el.off('compositionstart', onCompositionStart);
     ctx.$el.off('compositionend', onCompositionEnd);
+    ctx.$el.off('focus', onFocus);
+    ctx.$el.off('blur', onBlur);
+    if (state.timeoutId) clearTimeout(state.timeoutId);
   });
 
-  // Atom → DOM
+  // Core sync: Atom → DOM
   ctx.effects.push(() => {
-    const v = String(atom.value ?? '');
-    if (ctx.$el.val() !== v) {
+    const formatted = format(atom.value);
+    const currentVal = ctx.$el.val() as string;
+    
+    // Update only if value differs
+    if (currentVal !== formatted) {
+      // Don't interrupt user input if parsed value matches
+      if (state.hasFocus && parse(currentVal) === atom.value) {
+        return;
+      }
+      
       state.phase = 'syncing-to-dom';
-      ctx.$el.val(v);
-      debug.domUpdated(ctx.$el, 'val', v);
+      ctx.$el.val(formatted);
+      debug.domUpdated(ctx.$el, 'val', formatted);
       state.phase = 'idle';
     }
   });
