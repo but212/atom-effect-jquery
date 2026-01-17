@@ -11,13 +11,13 @@
 
 ## [0.6.0]
 
-### Fixed
+### Fixed - 0.6.0
 
 - **DOM Reparenting Cleanup Issue**: Added `isConnected` check in `MutationObserver` to prevent cleanup of nodes that have been reparented (moved) via jQuery's `.appendTo()`, `.prependTo()`, etc. This is critical for drag-and-drop (Sortable) libraries.
 - **Async Removal Ghost Item Bug**: Added `removingKeys` Set in `atomList` to track keys being removed asynchronously. Prevents duplicate item creation when the same key is re-added during async removal animation (e.g., fade-out).
 - **Decimal Input Issue**: Added focus-aware formatting in `atomVal` to allow intermediate input like `1.` or `00` during typing. Formatting is enforced on blur.
 
-### Changed
+### Changed - 0.6.0
 
 - **Input Binding State Management**
   - Replaced scattered boolean flags in `atomVal` with unified `InputBindingState` interface
